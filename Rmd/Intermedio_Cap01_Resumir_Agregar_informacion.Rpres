@@ -1,0 +1,2085 @@
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+PROGRAMACIÓN Y DATA SCIENCE CON R - INTERMEDIO
+========================================================
+author: Nestor Montaño
+date: Noviembre.2017
+autosize: true
+transition: rotate
+<small> 
+Vicerrectorado de Formación Académica y Profesional    
+Universidad de Guayaquil
+</small>
+
+
+
+
+Introducción a los análisis estadísticos
+========================================================
+type: sub-section
+
+
+
+Workflow de un análisis estadístico
+========================================================
+
+```{r, fig.align='center', echo=FALSE}
+   knitr::include_graphics('Imagenes/WorkFlow_dataScience.png', )
+```
+<small>
+- Import: Obtener y entender los datos para luego importarlos correctamente al software
+- Tidy: Ordenar los datos de tal manera que sea sencillo transformarlos, sumarizarlo, visualizarlos o realizar un modelo con ellos
+- Transform: Manipular los datos hasta obtener el input que el análisis o técnica estadística necesita
+- Visualise: Realizar el análisis exploratorio de datos
+- Model: Aplicar técnicas estadísticas para el entendimiento del problema o tomar decisiones
+- Comunicate: Tratar de mostrar los resultados de tal forma que el resto del mundo los entienda, usando reportes, gráficos, visualizaciones interactivas, integración con herramientas de BI, web apps, etc. 
+</small>
+
+
+
+Workflow de un análisis estadístico
+========================================================
+
+```{r, fig.align='center', echo=FALSE}
+   knitr::include_graphics('Imagenes/WorkFlow_dataScience.png', )
+```
+<small>
+- Import
+- Tidy    
+**Repetir mientras sea necesario**    
+__________________________________________________________________________
+- **Transform: Manipular los datos hasta obtener el input que el análisis o técnica estadística necesita**
+- **Visualise: Realizar el análisis exploratorio de datos**
+- **Model: Aplicar técnicas estadísticas para el entendimiento del problema o tomar decisiones**
+__________________________________________________________________________ 
+- Comunicate
+</small>
+
+
+
+
+Workflow de un análisis estadístico
+========================================================
+
+- Si bien R puede manejar vectores, matrices, listas, imágenes, información geográfica, etc, a lo largo del presente curso nos centraremos en los objetos de tipo data.frame, puesto que en la mayoría de los casos, se parte de un archivo de excel o spss, query de base de datos, etc para hacer la información.
+
+
+
+
+Importar Datos
+========================================================
+type: sub-section
+
+
+
+
+Importar Datos
+========================================================
+
+En el curso Básico aprendimos cómo importar, recordaremos brevemente lo visto
+
+
+
+
+Importar csv
+========================================================
+
+- Desde RStudio  
+  Import Dataset > From Text File > Escoger archivo > Abrir > Escribir nombre a la variable > Import
+- Con comando    
+  read.csv( file, sep = "," , dec = "," , stringsAsFactors= FALSE)
+- Para grandes volúmenes de datos usar paquete data.table   
+  fread()
+
+
+
+Importar desde excel
+========================================================
+
+- Copiando desde un archivo de excel abierto  
+  read.table("clipboard", sep="\t", header=TRUE)
+- Desde RStudio  
+  Rstudio > Import Dataset > From Excel > Escoger archivo > Abrir > Escribir nombre a la variable > Import
+- Usando el paquete `openxlsx`  
+  read.xlsx(xlsxFile , sheet , startRow , colNames , skipEmptyRows, rowNames)  
+  data_tiempo_espera <- read.xlsx(xlsxFile = 'Data/Data_Banco.xlsx')  
+- Otros paquetes  
+  `excel.link`, `XLConnect`, `xlsx`, `readxl`, `rio`
+
+
+
+
+Importar desde excel - Openxlsx
+========================================================
+
+- Descargar [Rtools] (https://cran.r-project.org/bin/windows/Rtools/)
+- Instalar Rtools
+  - Se debe escoger "agregar al path"
+  - Si la computadora ya tiene CYGWIN, se tiene un tratamiento especial
+- Instalar el paquete `openxlsx`  
+- Activar el paquete `openxlsx`  
+- Para leer se usa el comando read.xlsx(xlsxFile , sheet , startRow , colNames , skipEmptyRows, rowNames)  
+  - Considerar que luego de importado el archivo se debe verificar los tipos de datos
+  
+  
+  
+
+Exportar a excel
+========================================================
+
+- Usando el paquete `openxlsx`  
+  write.xlsx(x, file, asTable = FALSE, ...)
+- Se puede usar los paquetes `XLConnect`, `xlsx`, etc.
+  
+
+
+
+Importar desde SPSS, SAS, Stata, etc
+========================================================
+
+- Desde RStudio  
+  Rstudio > Import Dataset > From SPSS/SAS/STATA
+- Usando el paquete `foreign`  
+  SAS: read.xport()  
+  SPSS: read.spss()  
+  Stata: read.dta()  
+  Soporta otros formatos
+- Usango el paquete `haven`  
+  SAS: read_sas() y read_xpt()   
+  SPSS: read_sav() y read_por()  
+  Stata: read_dta()   
+- Se puede usar el paquerte `rio`  
+  
+
+
+Exportar a SPSS, SAS, Stata, etc
+========================================================
+
+- Usango el paquete `foreign`    
+  write.foreign(df, datafile, codefile, package = c("SPSS", "Stata", "SAS"), ...)
+- Usango el paquete `haven`  
+  SAS: write_sas()  
+  SPSS: write_sav()  
+  Stata: write_dta()  
+- Se puede usar el paquerte `rio`
+
+
+
+Interacción con Bases de Datos
+========================================================
+
+- Utilizando ODBC `RODBC`   
+  (Recomendado para Microsoft SQL)
+- Utilizando JDBC `RJDBC`   
+  (Usa java DBC)
+- Paquetes para bases específicas  
+  RMySQL, ROracle, RPostgreSQL, RSQLite, mongolite, RMongo, MonetDB.R, rmongodb
+
+
+ 
+Otros
+========================================================
+
+- GIS sistemas de información geográfica con `rgal` y `raster`
+- GoogleSpreadSheets con `googlesheets`
+- Archivos Open Document Spreadsheets con `readODS`
+- JSON data con `rjson` o `jsonlite` o `RJSONIO`
+
+
+
+
+Ejemplo: Data de transacciones bancarias
+========================================================
+
+El Banco del Pacífico requiere mejorar los tiempos de atención al cliente en ventanilla, para ello ha recolectado esta información anónimamente para cada cajero y transacción realizada.   
+
+Le suministran un excel con dos hojas:   
+
+1. Tiene los datos de las transacciones, columnas: Sucursal, Cajero, ID_Transaccion, Transaccion, Tiempo_Servicio_seg, Nivel de satisfacción, Monto de la transaccion. 
+2. Otra hoja que indica si en la sucursal se ha puesto o no el nuevo sistema.
+
+
+
+Ejemplo: Data de transacciones bancarias
+========================================================
+
+**Revisar archivo de excel: Data_Banco.xlsx**   
+
+Crear un proyecto en RStudio, con las carpetas Data, Exports, etc    
+
+Poner en la carpeta Data, el excel suministrado
+
+
+
+
+Importar - Ejemplo
+========================================================
+
+```{r}
+# Cargar la libreria a utilizar
+library(openxlsx)
+# Leer el archivo de excel y asignarlo al objeto data_banco
+data_banco <- read.xlsx(xlsxFile = "Data/Data_Banco.xlsx", sheet = "Data")
+data_sucursal <- read.xlsx(xlsxFile = "Data/Data_Banco.xlsx", sheet = "Data_Sucursal")
+```
+
+
+
+
+Entender los datos
+========================================================
+type: sub-section
+
+
+
+
+
+
+Entender los datos
+========================================================
+
+- ¿Qué representa cada columna?
+- ¿Qué tipo de dato debería tener cada columna?
+- ¿Qué granularidad o atomicidad tiene la data?
+- Si es que se tiene varios conjuntos de datos ¿Cómo se relacionan los datos?
+- A qué periodo de tiempo corresponde la data
+- Muchas veces se obtiene la información desde una base de datos y por tanto toca entender la base y el query que genera los datos
+
+
+
+Entender los datos - Ejemplo
+========================================================
+
+Podríamos ver las primeras filas
+```{r}
+# ver las primeras 5 filas
+head(data_sucursal, n = 5)
+```
+
+
+Entender los datos - Ejemplo
+========================================================
+
+Podríamos ver las primeras filas
+```{r}
+# ver las primeras 5 filas
+head(data_sucursal, n = 5)
+```
+
+
+Entender los datos - Ejemplo
+========================================================
+
+Listar los nombres de las columnas 
+```{r}
+# Listar los nombres de las columnas 
+names(data_banco)
+names(data_sucursal)
+```
+
+
+
+Entender los datos - Ejemplo
+========================================================
+
+Ver la estructura del data.frame
+```{r}
+# Ver la estructura del data.frame
+str(data_banco)
+```
+
+
+Entender los datos - Ejemplo
+========================================================
+
+Ver la estructura del data.frame
+```{r}
+# Ver la estructura del data.frame
+str(data_sucursal)
+```
+
+
+
+
+Manipulacion de datos
+========================================================
+type: sub-section
+
+
+
+
+Manipulacion de datos
+========================================================
+
+En el curso Básico se vió la forma estándar de R para manipular datos, acá veremos como hacerlo con el paquete dplyr (y magrittr) que están dentro del llamado tidyverse, lo cual es mucho más sencillo para entender, enseñar y aplicar
+
+```{r}
+# Cargar la librería
+library(tidyverse)
+```
+
+
+
+tibbles (un dataframe mejorado): 			
+========================================================
+class: small-code
+Tibble es un objeto del paquete dplyr, entre las mejoras que da es que no imprime todo el objeto en pantalla, sino un resumen del mismo.
+
+```{r}
+# Convertir el data_banco a un tibble
+data_banco <- tbl_df( data_banco) 
+# Muestra data_banco
+data_banco
+```
+
+
+
+
+Seleccionar columnas: 	select()
+========================================================
+class: small-code
+
+Seleccionar las columnas Transaccion, Tiempo_Servicio_seg del data.frame data_banco
+```{r}
+# Seleccionar las columnas Transaccion, Tiempo_Servicio_seg del data.frame data_banco
+# Note que como no se asignó, R evalúa la expresión y presenta el resultado
+select( data_banco, Transaccion, Tiempo_Servicio_seg) 
+```
+
+
+
+Operador Pipe: %>%
+========================================================
+class: small-code
+
+El operador Pipe %>% del paquete magrittr permiten que el código sea más legible porque:
+
+- Permite secuencias estructurantes de operaciones de datos de izquierda a derecha (a diferencia de dentro y fuera),
+- Evitando llamadas a funciones anidadas,
+- Minimiza la necesidad de variables locales y definiciones de funciones
+- Facilita agregar pasos en cualquier lugar de la programación
+
+
+
+Operador Pipe: %>%
+========================================================
+class: small-code
+
+Funciona así:
+- `x %>% f` es equivalente a `f(x)`
+- `x %>% f(y)` es equivalente a `f(x, y)`
+- `x %>% f %>% g %>% h` es equivalente a `h(g(f(x)))`
+- `x %>% f(y = nrow(.), z = ncol(.))` es equivalente a `f(x, y = nrow(x), z = ncol(x))`
+- `x %>% {f(y = nrow(.), z = ncol(.))}` is equivalent to `f(y = nrow(x), z = ncol(x))`
+- `%$%` permite seleccionar columas
+
+
+
+Operador Pipe: %>%
+========================================================
+class: small-code
+
+```{r}
+library(magrittr)
+data_banco %>% names
+data_banco %>% dim
+data_banco %>% names %>% length 
+length(names(data_banco)) # equivalencia del código anterior
+```
+
+
+Operador Pipe: %>%
+========================================================
+class: small-code
+
+```{r}
+data_banco %>% head(, n= 5)
+```
+
+
+
+
+Seleccionar columnas: 	select()
+========================================================
+class: small-code
+Seleccionar las columnas Transaccion, Tiempo_Servicio_seg del data.frame data_banco pero usando `%>%`, lo que permite programar como si se escribiese "del data_banco, selecciona las columnas Transaccion y Tiempo_Servicio_seg"
+
+```{r}
+# Seleccionar las columnas Transaccion, Tiempo_Servicio_seg del data.frame data_banco
+# Note que como no se asignó, R evalúa la expresión y presenta el resultado
+# Se lee, del data_banco, selecciona las columnas Transaccion y Tiempo_Servicio_seg
+data_banco %>% select( Transaccion, Tiempo_Servicio_seg) 
+```
+
+
+
+Seleccionar columnas y aplicar una función
+========================================================
+class: small-code
+Seleccionar la columna Tiempo_Servicio_seg y obtener un boxplot
+
+```{r, fig.align='center'}
+# Seleccionar la columna Tiempo_Servicio_seg y obtener un boxplot
+data_banco %>% select(Tiempo_Servicio_seg)  %>% boxplot
+```
+
+
+
+Seleccionar columnas y aplicar una función
+========================================================
+
+Seleccionar la columna Tiempo_Servicio_seg y obtener los fivenumbers de Tukey
+
+```{r, fig.align='center'}
+# Seleccionar la columna Tiempo_Servicio_seg y obtener los fivenumbers de Tukey
+data_banco %$% fivenum(Tiempo_Servicio_seg, na.rm= TRUE)
+```
+
+
+
+
+Seleccionar columnas y aplicar una función
+========================================================
+
+Obtener la correlación entre las columnas Tiempo_Servicio_seg y Monto 
+
+```{r, fig.align='center'}
+# Obtener la correlación entre las columnas Tiempo_Servicio_seg y Monto 
+data_banco %$% cor(Tiempo_Servicio_seg, as.numeric(Sucursal)) #Ojo, esto es incorrecto puesto que la sucursal no es una variable numérica
+```
+
+
+
+
+Seleccionar columnas: 	select()
+========================================================
+
+Seleccionar y ver en el visor de datos de RStudio
+
+```{r, eval=FALSE}
+# Seleccionar y ver en el visor de datos de RStudio
+data_banco %>% select( Transaccion, Tiempo_Servicio_seg) %>% View
+```
+
+
+
+
+Seleccionar columnas: 	select()
+========================================================
+
+Seleccionar todas las columnas menos Cajero
+
+```{r, eval=FALSE}
+# Seleccionar todas las columnas menos Cajero
+data_banco %>% select( -Cajero) %>% View
+```
+
+
+
+Seleccionar columnas: 	select()
+========================================================
+
+Seleccionar según nombre de la columna/variable
+
+```{r, eval=FALSE}
+# Seleccionar todas las columnas cuyo nombre contenga el texto "Tra"
+data_banco %>% select( contains("Tra")) %>% View
+# Seleccionar todas las columnas cuyo nombre inicie con "S"
+data_banco %>% select( starts_with("S")) %>% View
+# Seleccionar todas las columnas cuyo nombre finalice con "on"
+data_banco %>% select( ends_with("on")) %>% View
+# Seleccionar todas las columnas cuyo nombre contenga una "r" o un "sa"
+data_banco %>% select( matches("r?sa")) %>% View
+```
+
+
+
+
+Filtrar/Seleccionar filas: 	filter()
+========================================================
+
+Filtrar las filas según las condiciones dadas en filter()
+```{r, eval=FALSE}
+# Filtrar las filas correspondientes a la sucursal 62
+data_banco %>% filter( Sucursal== 62 ) %>% View
+# Filtrar las filas correspondientes a la sucursal 62 y hayan durado más de 120 segundos
+data_banco %>% filter( Sucursal== 62 & Tiempo_Servicio_seg > 120 ) %>% View
+# Filtrar las filas correspondientes a la sucursal 62,  hayan durado 
+# más de 120 segundos y la evaluación a la satisfacción sea Bueno
+data_banco %>% filter( Sucursal== 62 & Tiempo_Servicio_seg > 120 & Satisfaccion== "Muy Bueno") %>% View
+```
+
+
+Filtrar filas y seleccionar
+========================================================
+
+```{r}
+# Con el data banco
+# Filtrar las filas correspondientes a la sucursal 85
+# calcular la correlacion entre Tiempo_Servicio_seg y Monto
+data_banco %>% # Operador pipe total
+  filter( Sucursal== 85 ) %$%  # Operador pipe para seleccion de columnas
+  cor(Tiempo_Servicio_seg, as.numeric(Monto))
+```
+
+
+
+
+Ordenar las filas: 		arrange()
+========================================================
+Ordenar las filas según lo expresado en arrange()
+
+```{r, eval=FALSE}
+# Ordenar por la satisfaccion
+data_banco %>% arrange( Satisfaccion ) %>% View
+# Ordenar cada Transaccion y dentro de cada transaccion de mayor a menor por tiempo de servicio
+data_banco %>% arrange( Transaccion, desc(Tiempo_Servicio_seg) ) %>% View
+
+```
+
+
+
+Crear o modificar columnas/variables  		mutate()
+========================================================
+Crear una nueva columna con el tiempo en minutos
+
+```{r}
+# Crear una nueva columna con el tiempo en minutos
+data_banco %>% mutate(Tiempo_Servicio_Min= Tiempo_Servicio_seg/60)
+```
+
+
+Crear o modificar columnas/variables  		mutate()
+========================================================
+Crear una nueva columna con el tiempo en minutos
+
+```{r}
+# Crear una nueva columna con el tiempo en minutos
+data_banco %>% mutate(Tiempo_Servicio_Min= Tiempo_Servicio_seg/60)
+```
+
+**Nótese que no se asignó, el objeto data_banco no tiene la columna Tiempo_Servicio_Min**
+
+
+Crear o modificar columnas/variables  		mutate()
+========================================================
+class: small-code
+Crear una nueva columna con el tiempo en minutos
+
+```{r}
+# Crear una nueva columna con el tiempo en minutos
+data_banco <- data_banco %>%
+  mutate(Tiempo_Servicio_Min= Tiempo_Servicio_seg/60)
+# Mostrar
+data_banco
+```
+
+
+
+Nuevas columnas transmute()
+========================================================
+class: small-code
+Para conservar sólamente las nuevas columnas se usa  transmute()
+```{r}
+# Crear una nueva columna con el tiempo en minutos
+data_banco %>%
+  transmute(Tiempo_Servicio_Min= Tiempo_Servicio_seg/60)
+```
+
+
+
+Manipulacion de datos - Ejemplo
+========================================================
+
+Lo primero que necesitamos es corregir los tipos de datos. Notar que las funciones usadas en R Básico eran as.character, as.numeric y factor, ahora se usan otras correspondientes al tidyverse.
+
+```{r}
+data_banco <- data_banco %>%
+  mutate(Sucursal= parse_character(Sucursal),
+         Cajero = parse_character(Cajero),
+         Satisfaccion = parse_factor(Satisfaccion, levels= c('Muy Malo', 'Malo', 'Regular', 'Bueno', 'Muy Bueno')),
+         Monto= parse_double(Monto, locale = locale(decimal_mark = ","))
+  )
+```
+
+
+Crear resúmenes 			summarise()
+========================================================
+summarise() permite aplicar funciones a nuestro data.frame, como se hacía con tapply, ddply aprendido en el curso Básico.
+
+```{r}
+# Obtener la media del tiempo de servicio
+data_banco %>% 
+  summarise( 
+    MEDIA= mean(Tiempo_Servicio_seg, na.rm=TRUE), 
+    MEDIA_ACOT= mean(Tiempo_Servicio_seg, na.rm = TRUE, trim = 0.05),
+		CANTIDAD= n()
+  )
+```
+
+
+Crear resúmenes 			summarise()
+========================================================
+summarise_at() para escoger la variable a utilizar en los cálculos
+
+```{r}
+# Obtener la media del tiempo de servicio
+data_banco %>% 
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+
+Crear resúmenes 			summarise()
+========================================================
+summarise_at() permite escoger varias variables
+
+```{r, eval=FALSE}
+# Obtener la media del tiempo de servicio y el Monto
+data_banco %>% 
+  summarise_at( vars(Tiempo_Servicio_seg, Monto), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  ) %>% View
+```
+
+
+
+Crear resúmenes para datos agrupados
+========================================================
+Obtener medidas de tendencia central para el tiempo de servicio para cada Transaccion
+
+```{r, eval= FALSE}
+# Obtener medidas de tendencia central para el tiempo de servicio para cada Sucursal
+data_banco %>% 
+  group_by(Transaccion) %>%
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+Crear resúmenes para datos agrupados
+========================================================
+Obtener medidas de tendencia central para el tiempo de servicio para cada Transaccion
+
+```{r, echo= FALSE}
+# Obtener medidas de tendencia central para el tiempo de servicio para cada Sucursal
+data_banco %>% 
+  group_by(Transaccion) %>%
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+Crear resúmenes para datos agrupados
+========================================================
+Obtener medidas de tendencia central para el tiempo de servicio para cada Transaccion y Nivel de Satisfaccion
+
+```{r , eval=FALSE}
+# Obtener medidas de tendencia central para el tiempo de servicio para cada Sucursal
+data_banco %>% 
+  group_by(Transaccion, Satisfaccion) %>%
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+Crear resúmenes para datos agrupados
+========================================================
+class: small-code
+Obtener medidas de tendencia central para el tiempo de servicio para cada Transaccion y Nivel de Satisfaccion
+
+```{r , echo=FALSE}
+# Obtener medidas de tendencia central para el tiempo de servicio para cada Sucursal
+data_banco %>% 
+  group_by(Transaccion, Satisfaccion) %>%
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+
+
+Crear resúmenes para datos agrupados y filtrados
+========================================================
+class: small-code
+Para la Sucursal 62, obtener medidas de tendencia central para el tiempo de servicio para cada Transaccion y Nivel de Satisfaccion
+
+```{r , eval=FALSE}
+# Obtener medidas de tendencia central para el tiempo de servicio para cada Sucursal
+data_banco %>% 
+  filter( Sucursal== 62) %>%
+  group_by(Transaccion, Satisfaccion) %>%
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+
+
+
+Crear resúmenes para datos agrupados y filtrados
+========================================================
+class: small-code
+Para la Sucursal 62, obtener medidas de tendencia central para el tiempo de servicio para cada Transaccion y Nivel de Satisfaccion
+
+```{r , echo=FALSE}
+# Obtener medidas de tendencia central para el tiempo de servicio para cada Sucursal
+data_banco %>% 
+  filter( Sucursal== 62) %>%
+  group_by(Transaccion, Satisfaccion) %>%
+  summarise_at( vars(Tiempo_Servicio_seg), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIA_ACOT= mean(., na.rm = TRUE, trim = 0.05),
+                  CANTIDAD= n()
+                )
+  )
+```
+
+
+
+
+Tidy: Ordenar los datos
+========================================================
+type: sub-section
+
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Suponga que se quiere evaluar los casos de cierta enfermedad en un conjunto de países, nosotros normalmente deseamos tener los datos de esta manera:
+```{r}
+table1
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Sin embargo nos lo pueden dar así
+```{r}
+table2
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+O 
+```{r}
+table3
+```
+
+Tidy: Ordenar los datos
+========================================================
+O 
+```{r}
+table4a
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+O así
+```{r}
+table4b
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+En la mayoría de los casos, antes de realizar nuestros análisis debemos reordenar los datos en algún software como excel para cumplir lo siguiente
+
+- Que cada columna sea una variable
+- Que cada fila sea una observación (granularidad)
+- Que cada celda sea el valor de la variable para la observación
+
+```{r, fig.align='center', echo=FALSE}
+   knitr::include_graphics('Imagenes/tidy-1.png', )
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+En el conjunto  `table1` se puede ver que la granularidad de la información es País, Año, mientras que las variables son: Casos y Población.
+
+```{r}
+table1
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Datos ordenados nos permiten trabajar fácilmente con ellos
+
+```{r}
+# Calcular un ratio por cada 10 mil habitantes
+table1 %>% 
+  mutate(rate = cases / population * 10000) 
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+Datos ordenados nos permiten trabajar fácilmente con ellos
+
+
+```{r}
+# Calcular casos por año
+table1 %>% 
+  count(year, wt = cases)
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Spread- Se lo usa cuando una observación está en diferentes filas
+
+```{r}
+table2 
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Comparando `table2` con `table1`
+
+- ¿Qué columna tiene los nombres de las columnas?
+- ¿Qué columna contiene los valores observados?
+```{r}
+table2 
+```
+ 
+ 
+ 
+ 
+Tidy: Ordenar los datos
+========================================================
+Comparando `table2` con `table1`
+
+- ¿Qué columna tiene los nombres de las columnas? **type**   
+- ¿Qué columna contiene los valores observados? **count**
+```{r}
+table2 
+```
+ 
+ 
+ 
+Tidy: Ordenar los datos
+========================================================
+Para convertir `table2` en datos ordenados se usa spread()
+
+```{r}
+# Aplicar spread a table2
+spread(table2, key = type, value = count)
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+spread() transforma el 'key' en columnas y el 'value' en el valor de la observación
+
+
+```{r, fig.align='center', echo=FALSE}
+   knitr::include_graphics('Imagenes/Spread.png', )
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Gather- Se lo usa cuando se tiene datos parecidos a tablas cruzadas
+
+```{r}
+table4a
+```
+
+
+
+
+Tidy: Ordenar los datos
+========================================================
+¿Qué variables parece que se están cruzando en el table4a?
+¿Qué valor ha tomado como dato para la tabla cruzada?
+
+```{r}
+table4a
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+¿Qué variables parece que se están cruzando en el table4a? **País y Año**    
+¿Qué valor ha tomado como dato para la tabla cruzada? **Casos**
+
+```{r}
+table4a
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+Para convertir `table4a` en datos ordenados se usa gather()
+
+```{r}
+table4a %>% 
+  gather(`1999`, `2000`, key = "year", value = "cases")
+```
+
+
+
+
+Tidy: Ordenar los datos
+========================================================
+gather() transforma los nombres de columnas dados como la nueva columna "key" y los valores de las celdas pasan a la columna "value".
+
+
+```{r, fig.align='center', echo=FALSE}
+   knitr::include_graphics('Imagenes/Gather.png', )
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Separate() Permite disociar alguna columna que esté concatenada  
+
+```{r}
+table3
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+¿Qué columna parece estar concatenada?
+
+```{r}
+table3
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+¿Qué columna parece estar concatenada? **rate**
+
+```{r}
+table3
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+separate() Permite disociar alguna columna que esté concatenada  
+
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"), sep = "/")
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Con convert= TRUE se transforma a número
+
+```{r}
+table3 %>% 
+  separate(rate, into = c("cases", "population"), sep = "/", convert = TRUE)
+```
+
+
+
+Tidy: Ordenar los datos
+========================================================
+Cuando nos pasan información procedentes de tablas dinámicas puede pasar que se nombra el primer valor y lo de abajo se asume es lo mismo
+
+```{r}
+treatment <- tribble(
+  ~ person,           ~ treatment, ~response,
+  "Derrick Whitmore", 1,           7,
+  NA,                 2,           10,
+  NA,                 3,           9,
+  "Katherine Burke",  1,           4
+)
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+Con fill se pueden llenar los NA
+
+```{r}
+treatment
+```
+
+
+Tidy: Ordenar los datos
+========================================================
+Con fill se pueden llenar los NA
+
+```{r}
+treatment %>% 
+  fill(person)
+```
+
+
+
+Crear resúmenes: Ejemplos
+========================================================
+<small> Obtener la media del tiempo de servicio y del monto pero mostrar las variables como filas </small> 
+```{r , eval=FALSE}
+# Obtener la media del tiempo de servicio y del monto
+# Pero mostrar las variables como filas
+# Se debe tener cuidado con los nombres
+data_banco %>% 
+  rename(TiempoServicioSeg= Tiempo_Servicio_seg) %>%
+  summarise_at( vars(TiempoServicioSeg, Monto), 
+                funs (
+                  Media= mean(., na.rm=TRUE), 
+                  MediaAcot= mean(., na.rm = TRUE, trim = 0.05),
+                  Cantidad = n()
+                )
+  ) %>%
+  gather %>% 
+  separate(key, c("Var","Medida"), sep = "_") %>% 
+  spread(Medida, value)
+```
+
+
+
+Crear resúmenes: Ejemplos
+========================================================
+<small> Obtener la media del tiempo de servicio y del monto pero mostrar las variables como filas </small> 
+```{r, echo=FALSE}
+# Obtener la media del tiempo de servicio y del monto
+# Pero mostrar las variables como filas
+# Se debe tener cuidado con los nombres
+data_banco %>% 
+  rename(TiempoServicioSeg= Tiempo_Servicio_seg) %>%
+  summarise_at( vars(TiempoServicioSeg, Monto), 
+                funs (
+                  Media= mean(., na.rm=TRUE), 
+                  MediaAcot= mean(., na.rm = TRUE, trim = 0.05),
+                  Cantidad = n()
+                )
+  ) %>%
+  gather %>% 
+  separate(key, c("Var","Medida"), sep = "_") %>% 
+  spread(Medida, value)
+```
+
+
+
+Crear resúmenes: Ejemplos
+========================================================
+<small> Obtener la media del tiempo de servicio y del monto pero mostrar las variables como filas </small> 
+```{r, eval=FALSE}
+# Obtener la media del tiempo de servicio y del monto
+# Pero mostrar las variables como filas
+# Se debe tener cuidado con los nombres
+data_banco %>% 
+  rename(TiempoServicioSeg= Tiempo_Servicio_seg) %>%
+  summarise_at( vars(TiempoServicioSeg, Monto), 
+                funs (
+                  Media= mean(., na.rm=TRUE), 
+                  MediaAcot= mean(., na.rm = TRUE, trim = 0.05),
+                  Cantidad = n()
+                )
+  ) %>%
+  gather %>% 
+  separate(key, c("Var","Medida"), sep = "_") %>% 
+  spread(Var, value)
+```
+
+
+
+Crear resúmenes: Ejemplos
+========================================================
+<small> Obtener la media del tiempo de servicio y del monto pero mostrar las variables como filas </small> 
+```{r, echo=FALSE}
+# Obtener la media del tiempo de servicio y del monto
+# Pero mostrar las variables como filas
+# Se debe tener cuidado con los nombres
+data_banco %>% 
+  rename(TiempoServicioSeg= Tiempo_Servicio_seg) %>%
+  summarise_at( vars(TiempoServicioSeg, Monto), 
+                funs (
+                  Media= mean(., na.rm=TRUE), 
+                  MediaAcot= mean(., na.rm = TRUE, trim = 0.05),
+                  Cantidad = n()
+                )
+  ) %>%
+  gather %>% 
+  separate(key, c("Var","Medida"), sep = "_") %>% 
+  spread(Var, value)
+```
+
+
+
+Unir Datos
+========================================================
+type: sub-section
+
+
+
+
+Unir Datos
+========================================================
+class: small-code
+
+```{r}
+# Crear un Data frame
+df_1  <- data.frame( 
+  Nombre= c('Ana', 'Berni', 'Carlos', 'Daniel', 'Ericka'), 
+  Edad = c(20,19,20,19,18), 
+  Ciudad= factor(c('Gye', 'Uio', 'Cue', 'Gye', 'Cue')) )
+df_1
+```
+
+
+Unir Datos
+========================================================
+class: small-code
+
+```{r}
+# Crear  un Data frame
+df_2  <- data.frame( 
+  Nombre= c('Fulton', 'Gilda'), 
+  Ciudad= factor(c('Mach', 'Gye')) ,
+  Edad = c(21,18) 
+  )
+df_2
+```
+
+
+
+Unir Datos
+========================================================
+class: small-code
+
+```{r}
+# Crear  un Data frame
+df_3  <- data.frame( 
+  Estado_Civil= c('S', 'D', "S", "C", "D")
+  )
+df_3
+```
+
+
+
+Unir filas
+========================================================
+class: small-code
+Para unir filas se usa bind_rows
+```{r}
+# Aumentar filas
+bind_rows(df_1, df_2)
+```
+
+
+Unir filas
+========================================================
+class: small-code
+
+Para unir filas se usa bind_rows
+
+```{r}
+# Aumentar filas
+bind_rows(df_1, df_3)
+# rbind(df_1, df_3) #ERROR
+```
+
+
+
+
+Unir filas
+========================================================
+class: small-code
+
+Aumentar columna que indica origen de la fila
+```{r}
+# Aumentar columna que indica origen de la fila
+bind_rows(list(df_1, df_2), .id = "id")
+```
+
+
+
+Unir filas
+========================================================
+class: small-code
+
+Aumentar columna que indica origen de la fila
+
+```{r}
+# Aumentar columna que indica origen de la fila
+bind_rows(list(df_1= df_1, df_2= df_2), .id = "DF_ORIGEN")
+```
+
+
+Unir filas
+========================================================
+class: small-code
+Bind más de dos dataframes
+
+```{r}
+# Bind más de dos dataframes
+bind_rows(list(df_1= df_1, df_2= df_2, df_3= df_3), .id = "DF_ORIGEN")
+```
+
+
+Unir columnas
+========================================================
+class: small-code
+Para unir columnas se usa bind_cols   
+
+```{r}
+# Bind más de dos dataframes
+bind_cols(df_1, df_3)
+```
+
+
+Unir columnas
+========================================================
+class: small-code
+Para unir columnas se usa bind_cols, se requiere que los datos tengan el mismo largo
+
+```{r, eval=FALSE}
+# Bind más de dos dataframes
+bind_cols(df_1, df_2) #ERROR
+```
+
+
+
+Unir datos - Merge|Join|Buscarv
+========================================================
+
+- Se tienen dos data.frames con columnas o variables que hacen las veces de “key” o “id” de los mismos
+- Se desea agregar al primer conjunto el contenido del segundo conjunto de datos si y sólo si el “key” o “id” del segundo conjunto corresponde con el “key” o “id” del primer conjunto de datos. 
+- Parecido al Buscarv y Vlookup de excel
+- Equivalente al Join de Bases de datos
+
+
+
+
+
+Unir datos - Merge|Join|Buscarv
+========================================================
+
+Entendiendo los tipos de Join
+```{r, fig.align='center', echo=FALSE}
+   knitr::include_graphics('Imagenes/join-venn.png')
+```
+
+
+
+Unir datos - Merge|Join|Buscarv
+========================================================
+
+Nuevo data.frame
+```{r}
+df_6 <- data.frame(A= c('Ana', 'Daniel','Jose'), B= c(100,200,300))
+df_6
+```
+}
+
+
+Unir datos - Merge|Join|Buscarv
+========================================================
+class: small-code
+Recordando base R, se usaba el comando Merge 
+```{r, eval= FALSE}
+# Inner Join
+merge(x= df_1, y= df_6, by.x= 'Nombre', by.y= 'A')
+# Right Join
+merge(x= df_1, y= df_6, by.x= 'Nombre', by.y= 'A', all.x= TRUE)
+# Left Join
+merge(x= df_1, y= df_6, by.x= 'Nombre', by.y= 'A', all.y= TRUE)
+# Full Join
+merge(x= df_1, y= df_6, by.x= 'Nombre', by.y= 'A', all= TRUE)
+```
+
+Unir datos - Inner Join
+========================================================
+class: small-code
+
+```{r}
+df_1 %>% inner_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Left Join
+========================================================
+class: small-code
+
+```{r}
+df_1 %>% left_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Right Join
+========================================================
+class: small-code
+
+```{r}
+df_1 %>% right_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Full Join
+========================================================
+class: small-code
+
+```{r}
+df_1 %>% full_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Merge|Join|Buscarv
+========================================================
+
+Vamos a duplicar un Valor en df_6 y a replicar los Joins para revisar qué sucede cuando se tiene "key" no únicos
+```{r}
+df_6 <- data.frame(A= c('Ana', 'Daniel','Jose', 'Ana'), B= c(100,200,300, 110))
+df_6
+```
+
+Unir datos - Inner Join
+========================================================
+class: small-code
+Nótese la repetición de "Ana"
+```{r}
+df_1 %>% inner_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Left Join
+========================================================
+class: small-code
+Nótese la repetición de "Ana"
+```{r}
+df_1 %>% left_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Right Join
+========================================================
+class: small-code
+Nótese la repetición de "Ana"
+```{r}
+df_1 %>% right_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Unir datos - Full Join
+========================================================
+class: small-code
+Nótese la repetición de "Ana"
+```{r}
+df_1 %>% full_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+
+Unir datos 
+========================================================
+class: small-code
+Y ¿si repetimos "Ana" en el df_1?
+
+
+
+Unir datos 
+========================================================
+class: small-code
+Y si repetimos "Ana" en el df_1?
+```{r}
+df_1 %>% 
+  bind_rows( data.frame(Nombre="Ana", Edad= 42, Ciudad= 'Cue')) %>%
+  full_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+Filterin Joins
+========================================================
+class: small-code
+semi_join (x, y) da todas las observaciones en x que tienen al menos una coincidencia en y.
+
+```{r}
+df_1 %>% semi_join(df_6, by = c("Nombre"="A")) 
+```
+
+Filterin Joins
+========================================================
+class: small-code
+anti_join (x, y) da todas las observaciones en x que NO tienen coincidencia en y.
+
+```{r}
+df_1 %>% anti_join(df_6, by = c("Nombre"="A")) 
+```
+
+
+
+Join - Ejemplo transacciones bancarias
+========================================================
+
+¿Qué join necesitamos realizar con nuestros datos?
+```{r, eval=FALSE}
+View(data_banco)
+View(data_sucursal)
+```
+
+
+Join - Ejemplo transacciones bancarias
+========================================================
+
+Esto nos dará error, ¿Qué falta?
+```{r, eval=FALSE}
+data_banco %>%
+  left_join(data_sucursal, by= c("Sucursal"= "ID_Sucursal"))
+```
+
+
+
+Join - Ejemplo transacciones bancarias
+========================================================
+
+Esto nos dará error, ¿Qué falta?
+```{r, eval=FALSE}
+data_sucursal <- data_sucursal %>%
+  mutate(ID_Sucursal= parse_character(ID_Sucursal))
+```
+
+
+Join - Ejemplo transacciones bancarias
+========================================================
+
+Nótese el problema con el nombre "Sucursal"
+```{r, eval=FALSE}
+data_banco %>%
+  left_join(data_sucursal, by= c("Sucursal"= "ID_Sucursal"))
+```
+
+
+Join - Ejemplo transacciones bancarias
+========================================================
+
+Cambiamos el nombre y ya reemplazamos el data_banco con este resultado
+```{r, eval=FALSE}
+data_banco <- data_banco %>%
+  rename("ID_Sucursal"="Sucursal") %>%
+  left_join(data_sucursal, by= c("ID_Sucursal"))
+```
+
+
+
+
+Ejemplo: Venta de empresa retail
+========================================================
+Vamos a armar la estructura de datos típica en los análisis de empresas de retail
+
+```{r}
+set.seed(123)
+df_1 <- data.frame(
+  ALMACEN= rep(c("Mall del Sol", "Riocentro"), each= 6),
+  PRODUCTO= paste("Prod", LETTERS[1:6], sep="_"),
+  PERIODO= rep(seq.Date(from=as.Date("2015-01-01"), to=as.Date("2017-06-01"), by="month"), each=12),
+  VTA= runif(n = 360, min = 1000, max= 7000),
+  MARGEN= rnorm(n = 360, mean = 30, sd= 6)/100,
+  PPTO= runif(n = 360, min = 1000, max= 7000),
+  stringsAsFactors = FALSE
+)
+df_1 %<>% mutate(VTA_COSTO=VTA*(1-MARGEN))
+df_1 <- tbl_df(df_1)
+```
+
+
+
+
+Funciones para rangos de filas
+========================================================
+Ramking mensual de productos más vendidos por almacén
+
+```{r}
+df_1 %>%
+  arrange(ALMACEN, PERIODO) %>%
+  group_by(ALMACEN, PERIODO) %>%
+  mutate(Prod_rank = min_rank(desc(VTA)))
+```
+
+
+
+
+Funciones para rangos de filas
+========================================================
+Porcentaje de venta menor a la venta del producto, para cada almacén y mes
+
+```{r}
+df_1 %>%
+  arrange(ALMACEN, PERIODO) %>%
+  group_by(ALMACEN, PERIODO) %>%
+  mutate(Porc = percent_rank(VTA))
+```
+
+
+
+Funciones para rangos de filas
+========================================================
+Para el almacén y producto, la venta acumulada a cada cierre de mes empezando desde enero 
+
+```{r}
+df_1 %>%
+  arrange(ALMACEN, PRODUCTO, PERIODO) %>%
+  group_by(ALMACEN, PRODUCTO, ANIO=lubridate::year(PERIODO)) %>%
+  mutate(VTA_ACUM = cumsum(VTA)) 
+```
+
+
+
+
+Funciones para rangos de filas
+========================================================
+Para el almacén y producto, el promedio de venta mensual del año a cada cierre de mes empezando desde enero y el promedio de los últimos 3 meses
+
+```{r, eval=FALSE}
+library(RcppRoll)
+df_1 %>%
+  arrange(ALMACEN, PRODUCTO, PERIODO) %>%
+  group_by(ALMACEN, PRODUCTO, ANIO=lubridate::year(PERIODO)) %>%
+  mutate(PROM_ESTE_ANIO = cummean(VTA) ) %>% 
+  group_by(ALMACEN, PRODUCTO) %>%
+  mutate(PROM_ULT_TRIM = roll_mean(VTA, n = 3, fill= NA, align = "right" ) ) %>% 
+  View
+```
+
+
+Funciones para rangos de filas
+========================================================
+Para el almacén y producto, el promedio de venta mensual del año a cada cierre de mes empezando desde enero y el promedio de los últimos 3 meses
+
+```{r, eval=FALSE}
+library(RcppRoll)
+df_1 %>%
+  arrange(ALMACEN, PRODUCTO, PERIODO) %>%
+  group_by(ALMACEN, PRODUCTO, ANIO=lubridate::year(PERIODO)) %>%
+  mutate(PROM_ESTE_ANIO = cummean(VTA) ) %>% 
+  group_by(ALMACEN, PRODUCTO) %>%
+  mutate(PROM_ULT_TRIM = roll_mean(VTA, n = 3, fill= NA, align = "right" ) ) %>% 
+  View
+```
+
+
+
+Funciones para rangos de filas
+========================================================
+Ahora lo mismo pero también, para cada producto-almacén, la diferencia de la venta del mes versus el mes anterior
+
+```{r, eval=FALSE}
+library(RcppRoll)
+df_1 %>%
+  arrange(ALMACEN, PRODUCTO, PERIODO) %>%
+  group_by(ALMACEN, PRODUCTO, ANIO=lubridate::year(PERIODO)) %>%
+  mutate(PROM_ESTE_ANIO = cummean(VTA) ) %>% 
+  group_by(ALMACEN, PRODUCTO) %>%
+  mutate(PROM_ULT_TRIM = roll_mean(VTA, n = 3, fill= NA, align = "right" ) ,
+         DIFF_VS_MES_ANT= VTA - lag(VTA),
+         PORC_DIFF_VS_MES_ANT= (VTA - lag(VTA))/lag(VTA)
+         ) %>% 
+  View
+```
+
+
+
+Aplicar funciones a las columnas
+========================================================
+Con summarise aplicábamos funciones a las columnas, con las funciones del paquete purrr (parte del tidyverse) se extienden dichas carácterísticas
+
+- map() resulta en una lista.
+- map_lgl() devuelve un vector de tipo logical.
+- map_int() devuelve un vector de tipo integer.
+- map_dbl() devuelve un vector de tipo double.
+- map_chr() devuelve un vector de tipo character.
+- map_dfr () y map_dfc () devuelven data.frame creadas unión de fila o columna respectivamente.
+
+
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+
+Obtener la media de las columnas del data.frame
+
+```{r}
+# Obtener la media de las columnas del data.frame
+data_banco %>% map_dbl(mean)
+data_banco %>% select_if(is.numeric) %>% map_dbl(mean)
+```
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+
+Obtener la media y la mediana de las columnas del data.frame
+
+```{r}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% select_if(is.numeric) %>% map_dfc(~c(mean(., na.rm=TRUE), median(.,na.rm=TRUE))) 
+## No tengo el nombre del estadístico aplicado
+```
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+
+Obtener la media y la mediana de las columnas del data.frame agregando una columna con los nombres del estadístico obtenido
+
+```{r}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% 
+  select_if(is.numeric) %>% 
+  map_dfc(~c(mean(., na.rm=TRUE), median(.,na.rm=TRUE))) %>%
+  mutate(Medida = c('Media', 'Mediana'))  
+```
+
+
+
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+
+Obtener la media y la mediana de las columnas del data.frame agregando una columna con los nombres del estadístico obtenido y en el formato requerido
+
+```{r}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% 
+  select_if(is.numeric) %>% 
+  map_dfc(~c(mean(., na.rm=TRUE), median(.,na.rm=TRUE))) %>%
+  mutate(Medida = c('Media', 'Mediana'))  %>% 
+  gather(var, val, 1:(ncol(.)-1)) %>%
+  spread(key = Medida, val)
+```
+
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+
+Evaluar, para cada sucursal, la hipótesis de que el tiempo promedio es menor a 100 segundos
+
+```{r, eval=FALSE}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% 
+  split(.$Sucursal) %>%
+  map(~t.test(.$Tiempo_Servicio_seg, mu = 100, alternative = "less"))
+```
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+
+Evaluar, para cada sucursal, la hipótesis de que el tiempo promedio es menor a 100 segundos
+
+```{r, echo=FALSE}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% 
+  split(.$Sucursal) %>%
+  map(~t.test(.$Tiempo_Servicio_seg, mu = 100, alternative = "less"))
+```
+
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+Evaluar, para cada sucursal, la hipótesis de que el tiempo promedio es menor a 100 segundos
+
+```{r}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% 
+  split(.$Sucursal) %>%
+  map(~t.test(.$Tiempo_Servicio_seg, mu = 100, alternative = "less")) %>%
+  map_dbl(~.$p.value)
+```
+
+
+
+Aplicar funciones a las columnas
+========================================================
+class: small-code
+Evaluar, para cada sucursal, la hipótesis de que el tiempo promedio es menor a 100 segundos
+
+```{r}
+# Obtener la media y la mediana de las columnas del data.frame
+data_banco %>% 
+  split(.$Sucursal) %>%
+  map(~t.test(.$Tiempo_Servicio_seg, mu = 100, alternative = "less")) %>%
+  map_dfc(~c(.$p.value, .$estimate, .$statistic)) %>%
+  mutate( Medida= c("p.value", "estimate", "statistic"))
+```
+
+
+Reshape
+========================================================
+type: sub-section
+
+
+
+
+Ejemplo: Venta de empresa retail
+========================================================
+class: small-code
+Vamos a armar la estructura de datos típica en los análisis de empresas de retail
+
+```{r}
+set.seed(123)
+df_1 <- data.frame(
+  ALMACEN= rep(c("Mall del Sol", "Riocentro"), each= 6),
+  PRODUCTO= paste("Prod", LETTERS[1:6], sep="_"),
+  PERIODO= rep(seq.Date(from=as.Date("2015-01-01"), to=as.Date("2017-06-01"), by="month"), each=12),
+  VTA= runif(n = 360, min = 1000, max= 7000),
+  MARGEN= rnorm(n = 360, mean = 30, sd= 6)/100,
+  PPTO= runif(n = 360, min = 1000, max= 7000),
+  stringsAsFactors = FALSE
+)
+df_1 %<>% mutate(VTA_COSTO=VTA*(1-MARGEN))
+df_1 <- tbl_df(df_1)
+```
+
+
+Ejemplo: Venta de empresa retail
+========================================================
+class: small-code
+Vamos a armar la estructura de datos típica en los análisis de empresas de retail
+
+```{r}
+df_1
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Comando `melt` para separar las columnas en variables identificadoras y mariables de medición
+
+```{r}
+# Activar la librería reshape2
+library('reshape2')
+# Comando `melt` para separar las columnas en variables identificadoras y mariables de medición
+df_1_melt1 <- melt(data= df_1, 
+     id.vars= c('ALMACEN', 'PRODUCTO', 'PERIODO'),
+     measure.var= c('VTA', 'PPTO')
+     )
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Comando `melt` para separar las columnas en variables identificadoras y mariables de medición
+
+```{r}
+head(df_1_melt1, n = 10)
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Comando `melt` para separar las columnas en variables identificadoras y mariables de medición - Un ejemplo de lo incorrecto
+
+```{r}
+# Melt con id mal definidos
+df_1_melt2 <- melt(data= df_1, 
+                   id.vars= c('ALMACEN', 'PRODUCTO'),
+                   measure.var= c( 'PERIODO', 'VTA', 'PPTO')
+)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Comando `melt` para separar las columnas en variables identificadoras y mariables de medición - Un ejemplo de lo incorrecto
+
+```{r}
+head(df_1_melt2, n = 10)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Regresamos al data.frame original usando el comando `dcast`, lo hacemos por medio de una fórmula
+
+```{r}
+# dcast, regresar a dataframe original
+df_1_dcast1 <- 
+  dcast(data= df_1_melt1, 
+        formula= ALMACEN + PRODUCTO + PERIODO ~ variable)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Regresamos al data.frame original usando el comando `dcast` para separar las columnas en variables identificadoras y mariables de medición - Un ejemplo de lo incorrecto
+
+```{r}
+# dcast, regresar a dataframe original
+head(df_1_dcast1, n = 10)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Usamos el comando `dcast` para hacer columnas por periodo
+
+```{r}
+# columnas por periodol
+df_1_dcast2 <- 
+  dcast(data= df_1_melt1, 
+        formula= ALMACEN + PRODUCTO ~ PERIODO + variable)
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Usamos el comando `dcast` para hacer columnas por periodo
+
+```{r}
+# columnas por periodo  
+head(df_1_dcast2, n=3)
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Entendiendo la fórmula en `dcast` 
+
+```{r}
+# Entendiendo la fórmula en `dcast` 
+df_1_dcast3 <- 
+  dcast(data= df_1_melt1, 
+        formula= ALMACEN + PRODUCTO + variable ~ PERIODO)
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Entendiendo la fórmula en `dcast` 
+
+```{r}
+# Entendiendo la fórmula en `dcast` 
+head(df_1_dcast3, n=5)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Por default, si no hay dato unico dcast cuenta los datos (usa length)
+
+```{r}
+# Por default, si no hay dato unico dcast cuenta los datos (usa length)
+df_1_dcast4 <- 
+  dcast(data= df_1_melt1, 
+        formula= ALMACEN + PRODUCTO ~ variable)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Por default, si no hay dato unico dcast cuenta los datos (usa length)
+
+```{r}
+# Por default, si no hay dato unico dcast cuenta los datos (usa length)
+head(df_1_dcast4, n=10)
+```
+
+
+
+Reshape2
+========================================================
+class: small-code
+Si se requiere sumar hay q usar fun.aggregate
+
+```{r}
+# Si se requiere sumar hay q usar fun.aggregate
+df_1_dcast5 <- 
+  dcast(data= df_1_melt1, 
+        formula= ALMACEN + PRODUCTO ~ variable, 
+        fun.aggregate = sum, na.rm= TRUE)
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Si se requiere sumar hay q usar fun.aggregate
+
+```{r}
+# Si se requiere sumar hay q usar fun.aggregate
+head(df_1_dcast5, n= 5)
+
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Si se requiere sumar hay q usar fun.aggregate
+
+```{r}
+# Si se requiere sumar hay q usar fun.aggregate
+df_1_dcast6 <- 
+  dcast(data= df_1_melt1, 
+        formula= PRODUCTO + PERIODO ~ variable, 
+        fun.aggregate = sum, na.rm= TRUE)
+
+```
+
+
+
+
+
+Reshape2
+========================================================
+class: small-code
+Si se requiere sumar hay q usar fun.aggregate
+
+```{r}
+# Si se requiere sumar hay q usar fun.aggregate
+head(df_1_dcast6, n= 5)
+```
+
+
+
+
+Reshape2
+========================================================
+class: small-code
+Vamos a realizar el proceso inverso, partiendo de un data.frame como df_1_dcast2
+
+```{r}
+# Y si se recibe
+df_1a <- df_1_dcast2
+```
+
+
+
+
+Reshape2
+========================================================
+class: small-code
+Vamos a realizar el proceso inverso, partiendo de un data.frame como df_1_dcast2, primero realizar `melt`
+
+```{r}
+# melt
+df_1a_melt1 <- 
+  melt(data= df_1a, id.vars= c('ALMACEN', 'PRODUCTO'))
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Separamos la columna *variable*
+```{r}
+# Separamos la columna variable
+df_1a_melt1 %<>% separate(variable, c("PERIODO", "VAR"), sep= "_")
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Hacemos `dcast`
+
+```{r}
+# dcast
+df_1a_dcast1 <- 
+  dcast(data = df_1a_melt1, formula = ALMACEN + PRODUCTO + PERIODO ~ VAR, fun.aggregate = sum, value.var = 'value')
+```
+
+
+Reshape2
+========================================================
+class: small-code
+Hacemos `dcast`
+
+```{r}
+# dcast
+head(df_1a_dcast1, n=5)
+```
+
+
+
+
+Fin
+========================================================
+type: sub-section
+

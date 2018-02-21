@@ -1,0 +1,160 @@
+---
+title: "R Intermedio - Taller 1"
+author: "N Montano"
+date: "12 de noviembre de 2017"
+output: html_document
+---
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE}
+library(kableExtra)
+library(knitr)
+library(tidyverse)
+
+```
+
+
+
+## Preeliminares
+
+- Verificar que esté instalado RStudio y R (abrir RStudio), caso contrario: instalarlo
+- Verificar que esté instalado el paquete tidyverse (en el panel de paquetes), caso contrario: instalarlo
+- Abrir un script en R
+- Guardarlo como: TALLER_01_APELLIDO_NOMBRE.r, por ejemplo, TALLER_01_MONTANO_NESTOR.r
+- Al finalizar, enviarlo a rmontano@espol.edu.ec
+
+
+## Data a usar
+
+Se va a utilizar un data.frame que nos dará información sobre modelos de autos
+
+```{r}
+df_carros <- data.frame(
+  MODELO= rownames(mtcars),
+  TRANSMISION= ifelse(mtcars$am == 0, "automatica", "manual"),
+  NUM_CILINDROS= mtcars$cyl, 
+  MPG= mtcars$mpg,
+  CABALLOS_FUERZA= mtcars$hp
+  )
+
+```
+La variable NUM_CILINDROS representa el número de cilindros, MPG representa las millas por galón, el resto el nombre indica su significado.
+
+```{r , echo=FALSE}
+kable(df_carros[1:10,], format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+## Tema 1
+
+Transforme el data.frame a tibble
+
+
+## Tema 2
+
+Usando el operador pipe `%>%` y los comandos de dplyr (tidyverse), genere un boxplot para la variable que represente los caballos de fuerza. El resultado debe ser similar a:
+
+```{r, echo= FALSE}
+df_carros %>% select(CABALLOS_FUERZA) %>% boxplot()
+```
+
+
+
+
+
+
+## Tema 3
+
+Con los autos que tienen más de 4 cilindros (5 o más), calcule la media,  mediana y cantidad de datos para las variables millas por galón y caballos de fuerza; todo esto usando los comandos de dplyr (tidyverse). El resultado debe ser parecido a:
+
+
+```{r, echo= FALSE}
+res <- df_carros %>% 
+  filter( NUM_CILINDROS >4 )%>%
+  summarise_at( vars(MPG, CABALLOS_FUERZA), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIANA= median(., na.rm = TRUE),
+                  CANTIDAD= n()
+                )
+  )
+
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+## Tema 4
+
+Lo mismo que el tema 3, pero por tipo de transmisión y usando los comandos de dplyr (tidyverse),. El resultado debe ser parecido a:
+
+
+
+```{r, echo= FALSE}
+res <- df_carros %>% 
+  filter( NUM_CILINDROS >4 )%>%
+  group_by( TRANSMISION)%>%
+  summarise_at( vars(MPG, CABALLOS_FUERZA), 
+                funs (
+                  MEDIA= mean(., na.rm=TRUE), 
+                  MEDIANA= median(., na.rm = TRUE),
+                  CANTIDAD= n()
+                )
+  )
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+
+
+
+## Tema 5
+
+Con el data.frame:
+
+```{r}
+set.seed(1)
+venta <- data.frame(
+  ALM= rep(LETTERS[1:6], each= 3),
+  PERIODO= c('201701', '201702', '201703'),
+  VTA= round(runif(n = 18, min = 0, max= 100), 0),
+  PPTO= round(runif(n = 18, min = 0, max= 100), 0)
+)
+```
+
+Calcular, usando los comandos de dplyr (tidyverse), el cumplimiento mensual, es decir, cree una nueva columna que sea equivalente a venta sobre presupuesto. El resultado debe ser
+
+```{r, echo=FALSE}
+res <- venta %>% 
+  mutate( CUMP= VTA/PPTO)
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+
+
+## Tema 6
+
+Con el data.frame:
+
+```{r}
+set.seed(1)
+venta <- data.frame(
+  ALM= rep(LETTERS[1:6], each= 3),
+  PERIODO= c('201701', '201702', '201703'),
+  VTA= round(runif(n = 18, min = 0, max= 100), 0),
+  PPTO= round(runif(n = 18, min = 0, max= 100), 0)
+)
+```
+
+Genere un reporte que le de la venta mensual del almacen, pero de forma horizontal. Así:
+
+
+
+```{r, echo=FALSE}
+res <- venta %>% 
+  select(-PPTO) %>% 
+  spread(key = PERIODO, value = VTA)
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+

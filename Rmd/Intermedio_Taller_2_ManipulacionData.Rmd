@@ -1,0 +1,147 @@
+---
+title: "R Intermedio - Taller 2"
+author: "N Montano"
+date: "25 de noviembre de 2017"
+output: html_document
+---
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE}
+library(kableExtra)
+library(knitr)
+library(tidyverse)
+library(RcppRoll)
+```
+
+
+
+## Preeliminares
+
+- Verificar que esté instalado RStudio y R (abrir RStudio), caso contrario: instalarlo
+- Verificar que esté instalado el paquete tidyverse (en el panel de paquetes), caso contrario: instalarlo. Lo mismo para RcppRoll
+- Abrir un script en R
+- Guardarlo como: TALLER_02_APELLIDO_NOMBRE.r, por ejemplo, TALLER_02_MONTANO_NESTOR.r
+- Al finalizar, enviarlo a rmontano@espol.edu.ec
+
+
+## Data a usar
+
+Se va a utilizar un data.frame que nos dará información sobre modelos de autos
+
+```{r}
+df_carros <- data.frame(
+  MODELO= rownames(mtcars),
+  TRANSMISION= ifelse(mtcars$am == 0, "automatica", "manual"),
+  NUM_CILINDROS= mtcars$cyl, 
+  MPG= mtcars$mpg,
+  CABALLOS_FUERZA= mtcars$hp
+  )
+
+df_carros_2 <- data.frame(
+  MODELO= rownames(mtcars[3:20, ]), 
+  PESO= mtcars$cyl[3:20],
+  N_CARBU= mtcars$carb[3:20]
+  )
+
+set.seed(1)
+venta <- data.frame(
+  ALM= rep(LETTERS[1:6], each= 3),
+  PERIODO= c('201702', '201703', '201701'),
+  VTA= round(runif(n = 18, min = 0, max= 100), 0),
+  PPTO= round(runif(n = 18, min = 0, max= 100), 0)
+)
+
+```
+En el *df_carros* la variable NUM_CILINDROS representa el número de cilindros, MPG representa las millas por galón, el resto el nombre indica su significado.   
+
+En el *df_carros_2* la variable N_CARBU representa el número de carburadores, el resto el nombre indica su significado.
+
+
+```{r , echo=FALSE}
+kable(df_carros[1:10,], format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+
+```{r , echo=FALSE}
+kable(df_carros_2[1:10,], format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+```{r , echo=FALSE}
+kable(venta, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+*Transforme los data.frame a tibble*
+
+
+
+
+
+## Tema 1
+
+Haga un inner join entre df_carros y df_carros_2 y guárdelo en otro objeto
+
+
+
+```{r, echo= FALSE}
+res <- df_carros %>% inner_join(df_carros_2, by = c("MODELO")) 
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+
+
+
+## Tema 2
+
+Con los datos del tema 1 (el inner join) calcule la media, mediana y cantidad de datos para las variables millas por galón,  caballos de fuerza y peso; mostrar las variables como filas. Todo debe hacerlo usando los comandos de dplyr (tidyverse). El resultado debe ser parecido a:
+
+
+```{r, echo= FALSE}
+
+# Obtener la media del tiempo de servicio y del monto
+# Pero mostrar las variables como filas
+# Se debe tener cuidado con los nombres
+res <- df_carros %>% 
+  inner_join(df_carros_2, by = c("MODELO"))  %>% 
+  rename(CABALLOS.FUERZA = CABALLOS_FUERZA) %>%
+  summarise_at( vars(MPG, CABALLOS.FUERZA, PESO), 
+                funs (
+                  Media= mean(., na.rm=TRUE), 
+                  Mediana= median(., na.rm = TRUE, trim = 0.05),
+                  Cantidad = n()
+                )
+  ) %>%
+  gather %>% 
+  separate(key, c("Var","Medida"), sep = "_") %>% 
+  spread(Var, value)
+
+
+
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+
+
+## Tema 3
+
+Con el data.frame de venta calcular para cada almacén, la venta y el presupuesto acumulado a cada cierre de mes, la diferencia de la venta del mes versus el mes anterior y el promedio de los últimos 2 meses. El resultado debe ser
+
+```{r, echo=FALSE}
+res <- venta %>% 
+  arrange(ALM, PERIODO) %>%
+  group_by(ALM) %>%
+  mutate(VTA_ACUM = cumsum(VTA), 
+         PPTO_ACUM = cumsum(PPTO),
+         PROM_ULT_BIM = roll_mean(VTA, n = 2, fill= NA, align = "right" ) ,
+         DIFF_VS_MES_ANT= VTA - lag(VTA)) 
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+

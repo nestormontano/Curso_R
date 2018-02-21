@@ -1,0 +1,1231 @@
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+
+
+PROGRAMACIÓN Y DATA SCIENCE CON R - INTERMEDIO
+========================================================
+author: Nestor Montaño
+date: Noviembre.2017
+autosize: true
+transition: rotate
+<small> 
+Vicerrectorado de Formación Académica y Profesional    
+Universidad de Guayaquil
+</small>
+
+
+
+
+Regresión
+========================================================
+type: sub-section
+
+
+
+
+R - cargar librerías
+========================================================
+
+```{r librerias}
+library(openxlsx)
+library(MASS)
+library(dplyr)
+library(tidyr)
+library(magrittr)
+library(readr)
+library(ggplot2)
+library(hexbin)
+library(lubridate)
+library(GGally)
+library(modelr)
+library(lmtest)
+library(car)
+library(sandwich)
+library(boot)
+library(leaps)
+```
+
+
+
+
+
+Venta vs publicidad
+========================================================
+
+La empresa textil DePrati S.A. tiene un 2% de presupuesto para publicidad, por lo que semanalmente pauta en medios. Se tiene la información desglosada de dólares invertidos en cada tipo de medio, la semana correspondiente y la venta semanal.    
+
+**La próxima semana se va a gastar 2000 en publicidad, estime cuánto se va a vender**
+
+
+
+
+
+
+Importar data
+========================================================
+
+```{r}
+# Leer el archivo de excel y asignarlo al objeto data_banco
+data_venta_publicidad <- read.xlsx(xlsxFile = "Data/Venta_vs_Publicidad.xlsx", detectDates = TRUE)  
+str(data_venta_publicidad)
+```
+
+
+
+
+
+Convertir a tibbles (un dataframe mejorado): 			
+========================================================
+class: small-code
+
+
+```{r}
+# Convertir el data_venta_publicidad a un tibble
+data_venta_publicidad <- tbl_df( data_venta_publicidad) 
+
+```
+
+
+
+Explorar la data
+========================================================
+class: small-code
+Vamos a explorar la data utilizando un gráfico de dispersión
+
+```{r, fig.align='center'}
+data_venta_publicidad %>%
+  ggplot(., aes(PUBLICIDAD_TOTAL, VENTA)) + 
+  geom_point() 
+```
+
+
+
+Explorar la data
+========================================================
+class: small-code
+También una matriz de correlaciones
+
+```{r, fig.align='center'}
+data_venta_publicidad %>%   select_if(is.numeric) %>% as.data.frame %>% ggscatmat
+```
+
+
+
+Regresión lineal simple
+========================================================
+
+La idea de la regresión lineal simple es encontrar los valores de $\beta_0$ y $\beta_1$ que minimice los errores en la recta  
+
+$$y = \beta_0 + \beta_1 x + \epsilon$$
+
+
+- `y` es continua
+- $\epsilon$ son normalmente distribuidos
+- $\epsilon$ no presentan autocorrelación
+- $\epsilon$ deben ser homocedásticos (varianza constante)
+
+
+
+
+Regresión lineal simple
+========================================================
+
+Realizar una regresion simple
+```{r}
+## Realizar una regresion simple
+mod_1 <- lm(VENTA ~ PUBLICIDAD_TOTAL, data = data_venta_publicidad)
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+```{r}
+summary(mod_1)
+```
+
+
+
+Regresión lineal simple
+========================================================
+
+```{r, fig.align='center', echo=FALSE}
+knitr::include_graphics('Imagenes/Regresion.jpg')
+```
+
+
+Regresión lineal simple
+========================================================
+ 
+**Interpretaciones**   
+
+El modelo obtenido es: $ 54810.32 + 69.61*Publicidad$   
+
+Es decir, por cada dólar que incrementa el gasto en publicidad, la venta aumenta 69.61, partiendo de una base de 54810.   
+Se puede ver que el coeficiente de determinación $R^{2}$ *Ajustado* es igual a 0.724 lo cual indica que el modelo explica el 72.4% de la varianza de la variable Ventas, lo cual se podría decir que es un "buen" ajuste.
+
+
+
+
+Regresión lineal simple
+========================================================
+
+**Interpretaciones**   
+
+En los resultados del summary se puede observar el valor del estadístico *T* que permite realizar el contraste $H_{0}: \beta_{i}=0$ en este caso ambos valores p son cercanos a cero, es decir hay suficiente evidencia estadística para rechazar la hipótesis nula lo que indica los $\beta_{i}$ son estadísticamente significativos.   
+
+Por último, se tiene el estadístico *F* de la prueba $H_{0}$: El modelo lineal NO explica bien la respuesta, el valor p asociado es casi cero lo cual indica que hay suficiente evidencia estadística para rechazar la hipótesis nula, lo que nos permite concluir que hay un buen ajuste en el modelo resultante
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Graficar las predicciones
+
+```{r, fig.align='center', eval= FALSE}
+## Crea una tabla de datos base para predecir
+grid <- data_venta_publicidad %>% 
+data_grid(PUBLICIDAD_TOTAL) 
+
+## Agrega predicciones
+grid <- grid %>% 
+add_predictions(mod_1, var = 'PREDIC') 
+
+## Graficar
+data_venta_publicidad %>%
+ggplot(., aes(x= PUBLICIDAD_TOTAL)) + 
+geom_point(aes(y= VENTA)) + 
+geom_line(aes(y= PREDIC), data = grid, colour = "red", size = 1) +
+ggtitle("Datos + predicción")
+
+```
+
+
+
+Regresión lineal simple
+========================================================
+
+Graficar las predicciones
+
+```{r, fig.align='center', echo= FALSE}
+## Crea una tabla de datos base para predecir
+grid <- data_venta_publicidad %>% 
+data_grid(PUBLICIDAD_TOTAL) 
+
+## Agrega predicciones
+grid <- grid %>% 
+add_predictions(mod_1, var = 'PREDIC') 
+
+## Graficar
+data_venta_publicidad %>%
+ggplot(., aes(x= PUBLICIDAD_TOTAL)) + 
+geom_point(aes(y= VENTA)) + 
+geom_line(aes(y= PREDIC), data = grid, colour = "red", size = 1) +
+ggtitle("Datos + predicción")
+
+```
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Procedemos a analizar los residuos
+
+```{r, fig.align='center'}
+## Agregar residuales a datos
+data_venta_publicidad <- data_venta_publicidad %>% 
+add_residuals(mod_1, var = 'RESIDUALES')
+
+## Explorar los residuales
+head(data_venta_publicidad, 5)
+
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Procedemos a analizar los residuos
+
+```{r, fig.align='center'}
+## Explorar los residuales
+ggplot(data_venta_publicidad, aes(RESIDUALES)) + 
+geom_freqpoly(binwidth = 5000)
+
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Procedemos a analizar los residuos
+
+```{r, fig.align='center'}
+## Gráfico qq
+mod_1 %>% 
+ggplot(., aes(qqnorm(.stdresid)[[1]], .stdresid)) + 
+geom_point(na.rm = TRUE) + 
+geom_abline() + 
+xlab("Theoretical Quantiles") + 
+ylab("Standardized Residuals") + 
+ggtitle("Normal Q-Q")
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Prueba de Normalidad**   
+
+$H_{0}$: Los residuos se ajustan a una distribución normal vs    
+$H_{1}$: Los residuos NO se ajustan a una distribución normal
+
+
+```{r, fig.align='center'}
+# Si tuviésemos pocos datos
+shapiro.test(data_venta_publicidad$RESIDUALES)
+# Test KS
+ks.test(data_venta_publicidad$RESIDUALES, "pnorm")
+```
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+
+Podemos utilizar los residuos studentizados
+
+```{r, fig.align='center'}
+data_venta_publicidad$STUDRESIDUAL <- studres(mod_1) 
+# Si tuviésemos pocos datos
+shapiro.test(data_venta_publicidad$STUDRESIDUAL)
+# Test KS
+ks.test(data_venta_publicidad$STUDRESIDUAL, "pnorm")
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Homocedasticidad**   
+
+Exploramos gráficamente la varianza
+
+```{r, fig.align='center'}
+## Explorar la varianza
+ggplot(data_venta_publicidad, aes(PUBLICIDAD_TOTAL, RESIDUALES)) + 
+geom_ref_line(h = 0) +
+geom_point() + 
+ggtitle("Residuos")
+```
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Homocedasticidad**   
+
+$H_{0}$: La varianza es constante vs    
+$H_{1}$:  La varianza no es constante
+
+
+```{r, fig.align='center'}
+## Prueba de homocedasticidad
+bptest( mod_1)
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Homocedasticidad**   
+
+Para corregir el problema de Heterocedasticidad se puede ver qué outliers pueden estar causándola o también encontrar el patrón de la varianza del modelo para según ese patrón encontrar una transformación a aplicar
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Autocorrelacion**   
+
+En el gráfico de la función de autocorrelación no parece haber correlación
+
+```{r, fig.align='center'}
+## Grafico ACF
+acf( residuals( mod_1))
+
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Autocorrelacion**   
+Test de Durbin–Watson    
+
+$H_{0}$: La autocorrelación de los residuos es 0 vs    
+$H_{1}$: La autocorrelación de los residuos es diferente de  0
+
+
+```{r, fig.align='center'}
+## Test de Durbin–Watson    
+dwtest( mod_1, alternative = 'two.sided')
+```
+
+
+
+
+
+
+
+
+
+
+Regresión lineal simple
+========================================================
+
+La próxima semana se va a gastar 2000 en publicidad, estime cuánto se va a vender
+
+```{r}
+## transformando el predictor
+mod_1a <- lm(VENTA ~ log(PUBLICIDAD_TOTAL), data = data_venta_publicidad)
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+```{r}
+summary(mod_1a)
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+
+Graficar las predicciones
+
+```{r, fig.align='center', eval= FALSE}
+## Crea una tabla de datos base para predecir
+grid <- data_venta_publicidad %>% 
+  data_grid(PUBLICIDAD_TOTAL) 
+
+## Agrega predicciones
+grid <- grid %>% 
+  add_predictions(mod_1a, var = 'PREDIC') 
+
+## Graficar
+data_venta_publicidad %>%
+  ggplot(., aes(x= PUBLICIDAD_TOTAL)) + 
+  geom_point(aes(y= VENTA)) + 
+  geom_line(aes(y= PREDIC), data = grid, colour = "red", size = 1) +
+  ggtitle("Datos + predicción")
+
+```
+
+
+
+Regresión lineal simple
+========================================================
+
+Graficar las predicciones
+
+```{r, fig.align='center', echo= FALSE}
+## Crea una tabla de datos base para predecir
+grid <- data_venta_publicidad %>% 
+  data_grid(PUBLICIDAD_TOTAL) 
+
+## Agrega predicciones
+grid <- grid %>% 
+  add_predictions(mod_1a, var = 'PREDIC') 
+
+## Graficar
+data_venta_publicidad %>%
+  ggplot(., aes(x= PUBLICIDAD_TOTAL)) + 
+  geom_point(aes(y= VENTA)) + 
+  geom_line(aes(y= PREDIC), data = grid, colour = "red", size = 1) +
+  ggtitle("Datos + predicción")
+
+```
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Procedemos a analizar los residuos
+
+```{r, fig.align='center'}
+## Agregar residuales a datos
+data_venta_publicidad <- data_venta_publicidad %>% 
+  add_residuals(mod_1a, var = 'RESIDUALES')
+
+## Explorar los residuales
+head(data_venta_publicidad, 5)
+
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Procedemos a analizar los residuos
+
+```{r, fig.align='center'}
+## Explorar los residuales
+ggplot(data_venta_publicidad, aes(RESIDUALES)) + 
+  geom_freqpoly(binwidth = 5000)
+
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+Procedemos a analizar los residuos
+
+```{r, fig.align='center'}
+## Gráfico qq
+mod_1a %>% 
+  ggplot(., aes(qqnorm(.stdresid)[[1]], .stdresid)) + 
+  geom_point(na.rm = TRUE) + 
+  geom_abline() + 
+  xlab("Theoretical Quantiles") + 
+  ylab("Standardized Residuals") + 
+  ggtitle("Normal Q-Q")
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Prueba de Normalidad**   
+
+$H_{0}$: Los residuos se ajustan a una distribución normal vs    
+$H_{1}$: Los residuos NO se ajustan a una distribución normal
+
+
+```{r, fig.align='center'}
+# Si tuviésemos pocos datos
+shapiro.test(data_venta_publicidad$RESIDUALES)
+# Test KS
+ks.test(data_venta_publicidad$RESIDUALES, "pnorm")
+```
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+
+Podemos utilizar los residuos studentizados, 
+
+```{r, fig.align='center'}
+data_venta_publicidad$STUDRESIDUAL <- studres(mod_1a) 
+# Si tuviésemos pocos datos
+shapiro.test(data_venta_publicidad$STUDRESIDUAL)
+# Test KS
+ks.test(data_venta_publicidad$STUDRESIDUAL, "pnorm")
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Homocedasticidad**   
+
+Exploramos gráficamente la varianza
+
+```{r, fig.align='center'}
+## Explorar la varianza
+ggplot(data_venta_publicidad, aes(PUBLICIDAD_TOTAL, RESIDUALES)) + 
+  geom_ref_line(h = 0) +
+  geom_point() + 
+  ggtitle("Residuos")
+```
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Homocedasticidad**   
+
+$H_{0}$: La varianza es constante vs    
+$H_{1}$:  La varianza no es constante
+
+
+```{r, fig.align='center'}
+## Prueba de homocedasticidad
+bptest( mod_1a)
+```
+
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Autocorrelacion**   
+
+En el gráfico de la función de autocorrelación no parece haber correlación
+
+```{r, fig.align='center'}
+## Grafico ACF
+acf( residuals( mod_1a))
+
+```
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+**Análisis de los residuos: Autocorrelacion**   
+Test de Durbin–Watson    
+
+$H_{0}$: La autocorrelación de los residuos es 0 vs    
+$H_{1}$: La autocorrelación de los residuos es diferente de  0
+
+
+```{r, fig.align='center'}
+## Test de Durbin–Watson    
+dwtest( mod_1a, alternative = 'two.sided')
+```
+
+
+
+
+Regresión lineal simple
+========================================================
+class: small-code
+La próxima semana se va a gastar 2000 en publicidad, estime cuánto se va a vender
+
+```{r}
+## Predecir con el primer modelo
+predict(mod_1, newdata = data.frame(PUBLICIDAD_TOTAL= 2000))
+grid %>% filter(PUBLICIDAD_TOTAL== 2000)
+
+## Predecir con el modelo transformado
+predict(mod_1a, newdata = data.frame(PUBLICIDAD_TOTAL= 2000))
+grid %>% filter(PUBLICIDAD_TOTAL== 2000)
+```
+
+
+
+
+Regresión lineal múltiple
+========================================================
+
+La idea de la regresión lineal es encontrar los valores de $\beta_{i}$ que minimice los errores en la recta   
+$$y = \beta_{0} + \beta_{1} x_{1}  + \beta_{2} x_{2} + ...  + \beta_{n} x_{n} + \epsilon$$    
+
+- `y` es continua
+- $\epsilon$ son normalmente distribuidos
+- $\epsilon$ no presentan autocorrelación
+- $\epsilon$ deben ser homocedásticos (varianza constante)
+- **No debe existir multicolinearidad**
+
+
+
+
+Regresión lineal múltiple
+========================================================
+
+Realizar una regresión lineal múltiple
+
+```{r}
+## Regresion lineal multiple
+mod_2 <- lm(VENTA ~ TV + RADIO + PERIODICO + REDES,
+		data = data_venta_publicidad, x= TRUE)
+
+```
+
+
+Regresión lineal múltiple
+========================================================
+class: small-code
+Realizar una regresión lineal múltiple
+
+```{r}
+## Regresion lineal multiple
+summary(mod_2)
+```
+
+
+
+Regresión lineal múltiple
+========================================================
+class: small-code
+Se utilizan las mismas pruebas que en regresion lineal simple, pero se debe agregar la de *Multicolinealidad*
+
+```{r, fig.align='center'}
+# Ver matriz de correlacion
+data_venta_publicidad %>% select_if(is.numeric) %>% as.data.frame %>% ggscatmat
+```
+
+
+
+Regresión lineal múltiple
+========================================================
+class: small-code
+Evaluar *Multicolinealidad*
+
+```{r}
+#  Raiz de VIF > 2
+vif(mod_2) # variance inflation factors 
+sqrt(vif(mod_2)) > 2 
+```
+
+
+
+Regresión lineal múltiple
+========================================================
+class: small-code
+Evaluar *Multicolinealidad*
+
+```{r}
+## Eigen valores pequeños de X'X
+x <- mod_2$x
+lambda <- eigen(t(x)%*%x)$values
+lambda
+## Número de condición Kappa 
+## (kappa < 100 => No multic)
+## (kappa entre 100 y 1000 => multic moderada)
+## (kappa > 1000 => multic severa)
+kappa(mod_2)
+```
+
+
+
+
+Escoger modelos
+========================================================
+class: small-code
+Una de las formas de escoger un modelo es usando una anova
+
+**Test anova**    
+$H_{0}$: Ambos modelos tienen el mismo ajuste    
+$H_{1}$: Los modelos NO tienen el mismo ajuste 
+
+
+```{r}
+## Anova (siempre colocar el modelo con más variables al inicio)
+anova(mod_2, mod_1)
+```
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+
+Se puede hacer la selección de variables en función del AIC
+
+```{r}
+# Procedemos a una selecci¶on autom¶atica de variables
+modelo_completo <- lm(VENTA ~ PUBLICIDAD_TOTAL + TV + RADIO + PERIODICO + REDES,
+		data = data_venta_publicidad, x= TRUE)
+```
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Se puede hacer la selección de variables en función del AIC
+
+```{r}
+# Procedemos a una seleccion automatica de variables
+modelo_aic <- step(modelo_completo)
+```
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Se puede hacer la selección de variables en función del AIC
+
+```{r}
+summary(modelo_aic)
+```
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets
+
+```{r}
+mod_sel1 <- regsubsets(VENTA ~ PUBLICIDAD_TOTAL + TV + RADIO + PERIODICO + REDES,
+		data = data_venta_publicidad)
+
+summary(mod_sel1)
+```
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets
+
+```{r}
+mod_sel2 <- regsubsets(VENTA ~ PUBLICIDAD_TOTAL + TV + RADIO + PERIODICO + REDES,
+		data = data_venta_publicidad, method = "forward")
+summary(mod_sel2)
+```
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets
+
+```{r}
+mod_sel3 <- regsubsets(VENTA ~ PUBLICIDAD_TOTAL + TV + RADIO + PERIODICO + REDES,
+		data = data_venta_publicidad, nbest=3)
+summary(mod_sel3)
+```
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets retorna el mejor (o en nuestro ejemplo los dos mejores) según la cantidad de variables escogidas
+
+```{r}
+mod_sel3_summary <- summary(mod_sel3)
+as.data.frame(mod_sel3_summary$outmat)
+```
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets retorna el mejor (o en nuestro ejemplo los dos mejores) según la cantidad de variables escogidas
+
+```{r}
+cbind(mod_sel3_summary$which,
+mod_sel3_summary$adjr2)
+```
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets - Ver qué modelo ajusta mejor
+
+```{r}
+which.max(mod_sel3_summary$adjr2)
+mod_sel3_summary$which[which.max(mod_sel3_summary$adjr2), ]
+```
+
+
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets - ver gráficamente cual modelo es mejor
+
+```{r, fig.align='center'}
+plot(mod_sel3, scale = "adjr2", main = "Adjusted R^2")
+```
+
+
+
+Regresión lineal múltiple - Selección de variables
+========================================================
+class: small-code
+Funcion regsubsets
+```{r}
+coef(mod_sel3, 1:7)
+vcov(mod_sel3, 7)
+```
+
+
+
+
+Regresión lineal múltiple 
+========================================================
+class: small-code
+Evaluando Multicolinearidad del modelo final (revise la correlación entre Publicidad total y venta)
+
+```{r}
+mod_4 <- lm(VENTA ~ PUBLICIDAD_TOTAL + RADIO + PERIODICO, 
+            data = data_venta_publicidad, x = TRUE)
+#  Raiz de VIF > 2
+vif(mod_4) # variance inflation factors 
+sqrt(vif(mod_4)) > 2 
+```
+
+
+
+Regresión lineal múltiple
+========================================================
+class: small-code
+Evaluar *Multicolinealidad*
+
+```{r}
+## Eigen valores pequeños de X'X
+x <- mod_4$x
+lambda <- eigen(t(x)%*%x)$values
+lambda
+## Número de condición Kappa 
+## (kappa < 100 => No multic)
+## (kappa entre 100 y 1000 => multic moderada)
+## (kappa > 1000 => multic severa)
+kappa(mod_4)
+```
+
+
+
+
+Regresión lineal múltiple
+========================================================
+
+Para resolver la Multicolinealidad hay diversos métodos, desde eliminar la variable que influye (si se tienen otras que explican bien) hasta crear nuevas variables utilizando componentes principales.
+
+
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+Vamos a incluir la variable que indica si la promoción usó un famoso o no
+
+```{r, fig.align='center'}
+data_venta_publicidad %>%
+  ggplot(., aes(VENTA, PUBLICIDAD_TOTAL)) + 
+  geom_point( aes(colour= USA_FAMOSO))
+```
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+Vamos a incluir la variable que indica si la promoción usó un famoso o no
+```{r, fig.align='center'}
+data_venta_publicidad %>%
+  dplyr::select( -SEMANAS) %>%  # Por un problema con select del MASS
+  as.data.frame() %>%
+  ggpairs(.) 
+```
+
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+
+```{r}
+## Modelo con sólo la variable Usa Famoso
+mod_cat_1 <- lm(VENTA ~ USA_FAMOSO, data = data_venta_publicidad)
+summary(mod_cat_1)
+```
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+```{r}
+## Modelo estima los efectos independientemente
+mod_cat_2 <- lm(VENTA ~ PUBLICIDAD_TOTAL + USA_FAMOSO, data = data_venta_publicidad)
+summary(mod_cat_2)
+
+```
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+```{r}
+## Modelo estima los efectos independientemente y además la interacción
+mod_cat_3 <- lm(VENTA ~ PUBLICIDAD_TOTAL * USA_FAMOSO, data = data_venta_publicidad)
+summary(mod_cat_3)
+
+```
+
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+Entendiendo la Interacción
+
+```{r}
+## Grid para predicciones
+grid <- data_venta_publicidad %>% 
+  data_grid(PUBLICIDAD_TOTAL, USA_FAMOSO) %>% 
+  gather_predictions(mod_cat_2, mod_cat_3)
+grid
+```
+
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+Entendiendo la Interacción - Notar que el sin interacción la inclinación de la recta es igual para si usa o no famoso, en el modelo *con interacción* no se cumple aquello.
+
+```{r, fig.align='center'}
+## Ver la diferencia entre un modelo sin interacción y con interacción
+ggplot(data_venta_publicidad, aes(PUBLICIDAD_TOTAL, VENTA, colour = USA_FAMOSO)) + 
+  geom_point() + 
+  geom_line(data = grid, aes(y = pred)) + 
+  facet_wrap(~ model)
+```
+
+
+
+
+
+Regresión lineal múltiple - Con variables categóricas
+========================================================
+class: small-code
+Entendiendo la Interacción.- El modelo con interacciones se interpreta así:
+
+Cuando NO se usa el Famoso el modelo resultante es  
+$$56344.308 + 68.371 * Publicidad$$
+
+Cuando SÍ se usa el Famoso el modelo resultante es  
+$$56344.308 + 68.371 * Publicidad - 4219.565 + 3.437 * Publicidad$$
+
+
+
+
+
+
+
+
+
+Regresión logística
+========================================================
+
+En la regresión logística tenemos una variable binaria que debe ser explicada en función de otras, el resultado de la regresión logística se interpreta como una propensión
+
+$$Z_{i} = ln{\left(P_{i} \over 1-P_{i} \right)} = \beta_{0} + \beta_{1} x_{1} + . . + \beta_{n} x_{n} $$   
+
+Es decir, se puede calcular la probabilidad de un estado así   
+
+$$P_{i} = 1 - {\left( 1 \over 1 + e^z_{i}\right)}$$
+
+
+
+
+Regresión logística
+========================================================
+
+Se tiene los resultados de un estudio acerca de si un paciente sometido a cirugía con anestesia general experimentó dolor de garganta al despertar (0 = no, 1 = sí), la duración de la cirugía en minutos (D) y el tipo de dispositivo utilizado para asegurar la vía aérea (T) (0 = vía aérea con máscara laríngea, 1 = tubo traqueal)
+
+
+
+Regresión logística
+========================================================
+class: small-code
+```{r}
+# Leer datos
+datos <- read.xlsx(xlsxFile = 'Data/patientSurgeryWaking.xlsx')
+datos$TIPO <- factor(datos$TIPO, levels = 0:1, labels = c('máscara laríngea', 'tubo traqueal'))
+# Ver estructura del data.frame
+str( datos)
+```
+
+
+Regresión logística
+========================================================
+class: small-code
+```{r}
+# Leer datos
+summary( datos)
+```
+
+
+
+Regresión logística
+========================================================
+class: small-code
+Se realizan gráficos que nos permita entender el comportamiento de las variables 
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align= "center"}
+# Grafico para explorar como se comporta 
+g <- ggplot(datos, aes(DUR))
+g + geom_histogram(aes(fill = factor(Y, levels= c(1,0), labels = c('Si', 'No'))), binwidth = 10) + facet_grid(TIPO~. ) + 
+  labs( x= 'Duración (min)', y= 'Cantidad de cirugías', title= 'Histograma de cantidad de cirugías \n según tipo de dispositivo usado', fill= 'Reporta \n dolor')
+```
+
+
+Regresión logística
+========================================================
+
+Gráficamente no se ve mayor peso de cirugías que reportan dolor en función del tipo de dispositivo utilizado, parece que la variable que mayor relación presenta es la duración de la cirugía, se procede a revisar los resultados como porcentajes
+
+
+
+
+Regresión logística
+========================================================
+class: small-code
+<small>Y se puede ver que a mayor duración mayor es el porcentaje de cirugías que reportan dolor, es más, alrededor de los 70 minutos en adelante todas las cirugías presentan dolor. </small>
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align= "center"}
+# Grafico para explorar como se comporta 
+g + geom_histogram(aes(fill = factor(Y, levels= c(1,0), labels = c('Si', 'No'))), binwidth = 10, position = 'fill') +
+  facet_grid(TIPO~.) + 
+  labs( x= 'Duración (min)', y= 'Porcentaje de cirugías', title= 'Porcentaje de cirugías según tipo \n de dispositivo usado y dolor reportado', fill= 'Reporta \n dolor') +
+  scale_x_discrete( breaks= seq(from = 15, to = 130, by = 10), labels= seq(15, 130, 10), limits= seq(15, 130, 10))
+
+```
+
+
+
+Regresión logística
+========================================================
+class: small-code
+
+Se utiliza I(DUR-15) puesto que se recomienda que las variables numéricas empiecen en `0`
+
+```{r, message=FALSE, warning=FALSE}
+# Hacer modelo de regresion logistica
+m1 <- glm(Y ~ I(DUR-15) + TIPO, binomial, datos)
+# Vemos el modelo
+summary(m1)
+```
+
+
+
+Regresión logística
+========================================================
+class: small-code
+Se construye un  modelo de regresión logistica donde se trata de explicar la probabilidad de reportar dolor de garganta en función de la duración de la cirugía en minutos y el tipo de dispositivo, esto es
+
+$$log(\frac{p}{1-p})= \beta_{0} + \beta_{1} Duración + \beta_{2} TipoDispositivo$$    
+
+El modelo resultante es:    
+
+$$log(\frac{p}{1-p})= -0.38717 + 0.06868 * (Duración - 15) - 1.65895 * DispositivoTraqueal$$
+
+Donde $p$ es la probabilidad de que se reporte dolor de garganta.
+  
+  
+  
+  
+
+
+Regresión logística
+========================================================
+
+Al evaluar la significancia de la variable *DispositivoTraqueal* se obtiene un $p= 0.07224$ que nos indica que el $\beta_{2}= -1.65895$ correspondinete a la variable Tipo de Dispositivo no es estadísticamente significante a nivel de 0.05, sin embargo su valor p lo ubica relativamente cerca al valor de 0.05, por lo que se probará el modelo sin dicho parámetro
+
+
+
+Regresión logística
+========================================================
+class: small-code
+Con el comando drop1 revisamos si el AIC se ve afectado al eliminar una variable, en este caso el test nos dice que si quitamos la variable tipo el AIC no se ve casi afectado
+
+```{r, message=FALSE, warning=FALSE}
+drop1(m1, test = 'LRT')
+```
+
+
+
+Regresión logística
+========================================================
+class: small-code
+Actualizamos el modelo quitando TIPO
+
+```{r}
+m2 <- update(m1, .~.-TIPO)
+summary(m2)
+```
+
+
+Regresión logística
+========================================================
+
+El modelo resultante es:   
+
+$$log(\frac{p}{1-p})= -1.15784 + 0.07038 * (Duración - 15)$$   
+
+Según el modelo resultante, con una duración de 15 min la propensión de reportar dolor de garganta es $\epsilon^{-1.15784} =$ `r round(exp(-1.15784), 4)`, es decir que a con 15 minutos la propensión a reportar dolor de garganta es apenas el 31% de la probabilidad de no reportarlo, en particular a esta duración se tiene una probabilidad 0.239 de reportar dolor de garganta (siendo 0.761 la de no reportarlo).   
+
+
+
+  
+Regresión logística
+========================================================
+class: small-code
+El modelo nos indica que a medida que se aumenta un minuto de duración de la cirugía la propensión de reportar dolor de garganta aumenta un $\epsilon^{0.07038}-1 =$  `r round( exp(0.07038)-1, 4)*100`%. 
+
+```{r, message=FALSE, warning=FALSE}
+# Probabilidad
+predict(m2, data.frame(DUR= 15), type = "response")
+predict(m2, data.frame(DUR= 16), type = "response") 
+# Propensión
+predict(m2, data.frame(DUR= 15), type = "response")/(1-predict(m2, data.frame(DUR= 15), type = "response")) * 1.0729
+predict(m2, data.frame(DUR= 16), type = "response")/(1-predict(m2, data.frame(DUR= 16), type = "response"))
+```
+
+
+
+  
+Final
+========================================================
+
+
+Existe una gran cantidad de técnicas para modelar, todos ellos pueden ser utilizados en R.  
+- Modelos lineales generalizados
+- Modelos aditivos generalizados
+- Modelos lineales penalizados 
+- Modelos lineales robustos
+- Árboles de decision
+
+
+
+Fin
+========================================================
+type: sub-section

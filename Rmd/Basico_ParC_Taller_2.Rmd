@@ -1,0 +1,122 @@
+---
+title: "R Basico | Par C - Taller 2"
+author: "N Montano"
+date: "30 de noviembre de 2017"
+output: html_document
+---
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE, eval=TRUE}
+library(kableExtra)
+library(knitr)
+library(tidyverse)
+library(RcppRoll)
+```
+
+
+
+## Preeliminares
+
+- Verificar que esté instalado RStudio y R (abrir RStudio), caso contrario: instalarlo
+- Verificar que esté instalado el paquete openxlsx (en el panel de paquetes), caso contrario: instalarlo. 
+- Abrir un script en R
+- Guardarlo como: BASICO_TALLER_02_APELLIDO_NOMBRE.r, por ejemplo, TALLER_02_MONTANO_NESTOR.r
+- Al finalizar, enviarlo a rmontano@espol.edu.ec
+
+
+
+## TEMA 1
+
+Con los data.frame siguientes:
+
+```{r}
+df_carros <- data.frame(
+  MODELO= rownames(mtcars),
+  TRANSMISION= ifelse(mtcars$am == 0, "automatica", "manual"),
+  NUM_CILINDROS= mtcars$cyl, 
+  MPG= mtcars$mpg,
+  CABALLOS_FUERZA= mtcars$hp
+  )
+
+df_carros_2 <- data.frame(
+  MODELO= rownames(mtcars[3:20, ]), 
+  PESO= mtcars$cyl[3:20],
+  N_CARBU= mtcars$carb[3:20]
+  )
+
+
+```
+
+
+```{r , echo=FALSE}
+kable(df_carros[1:10,], format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+
+```{r , echo=FALSE}
+kable(df_carros_2[1:10,], format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+```
+
+
+Haga un left join entre df_carros y df_carros_2 y guárdelo en otro objeto, debería quedar:
+
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+res <- df_carros %>% left_join(df_carros_2, by = c("MODELO")) 
+kable(res, format = "html") %>%   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
+
+
+
+## TEMA 2
+
+
+Utilizando el paquete openxlsx importar a R el archivo Data_Taller.xlsx, asignar la información importada a un objeto llamado data_taller
+
+```{r, echo= FALSE}
+# Instalar rtools primero
+# Activar la libreria
+library(openxlsx)
+# Leer excel
+data_taller <- read.xlsx("Data/Data_Taller.xlsx")
+
+```
+
+
+## TEMA 3
+
+
+Modificar las columnas del objeto creado para pasar de esto
+
+```{r}
+str(data_taller)
+```
+
+a esto
+
+
+```{r}
+# La Satisfaccion es una variable categórica ordinal
+data_taller$SATISFACCION <- factor(data_taller$SATISFACCION, levels= c('Muy Malo', 'Malo', 'Regular', 'Bueno', 'Muy Bueno'))
+# La Sucursal y el Cajero deben ser categórica nominales
+data_taller$COD_CLIENTE <- as.character(data_taller$COD_CLIENTE)
+
+```
+
+
+```{r}
+str(data_taller)
+```
+
+
+
+
+## TEMA 4
+
+Obtener la media, media acotada al 5%, mediana, quartiles y percentil 95 de la variable *VALOR*

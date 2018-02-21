@@ -1,0 +1,566 @@
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+
+PROGRAMACIÓN Y DATA SCIENCE CON R
+========================================================
+author: Nestor Montaño
+date: Octubre.2017
+autosize: true
+transition: rotate
+<small> 
+Vicerrectorado de Formación Académica y Profesional    
+Universidad de Guayaquil
+</small>
+
+
+
+
+
+
+Relaciones entre variables cualitativas
+========================================================
+type: sub-section
+
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+<small>Es una tabulación cruzada que muestra la distribución de frecuencia de dos variables categóricas de interés.
+- Resume la interacción de las variables
+- Por ejemplo, en la imagen, C[1, 2] sería el número de observaciones que tienen el Nivel 1 para la Variable 1 y el Nivel 2 para la variable 2
+</small>
+
+
+![Tablas de contingencia](Imagenes/TablaContingencia.png)
+
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+Digamos que se tiene un presupuesto para mejora de satisfacción al clientes y le han pedido indicar dónde enfocar dicho presupuesto.   
+Vamos a analizar el nivel de satisfacción en función de la sucursal del Banco.
+
+
+
+Importar Data
+========================================================
+class: small-code
+
+Importar los datos a utilizar y cambiar los tipos de datos (como en el capitulo 4)
+
+```{r}
+# Cargar paquete
+library("openxlsx")
+# Leer data
+data_banco <- read.xlsx("Data/Data_Banco.xlsx", sheet = "Data")
+# La Satisfaccion es una variable categórica ordinal
+data_banco$Satisfaccion <- factor(data_banco$Satisfaccion, levels= c('Muy Malo', 'Malo', 'Regular', 'Bueno', 'Muy Bueno'))
+# La Sucursal y el Cajero deben ser categórica nominales
+data_banco$Sucursal <- as.character(data_banco$Sucursal)
+data_banco$Cajero <- as.character(data_banco$Cajero)
+```
+
+
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+Vamos a analizar el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Tabla de contingencia - Banco Sucursal
+table(data_banco$Sucursal, data_banco$Satisfaccion)
+
+```
+
+
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+Vamos a analizar el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Tabla de contingencia – Con los márgenes
+tb_conting_obs <- table(data_banco$Sucursal, data_banco$Satisfaccion)
+tb_conting_obs
+addmargins(tb_conting_obs)
+
+```
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+Vamos a analizar el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Tabla de contingencia - Porcentajes
+tb_conting_rel<- prop.table(tb_conting_obs)
+addmargins(tb_conting_rel)*100
+
+```
+
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+Vamos a analizar el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Probabilidad Condicional - en funcion de las filas (dado un valor de la fila)
+prop.table( tb_conting_obs, 1)*100
+addmargins( prop.table( tb_conting_obs, 1) ) * 100
+```
+
+
+
+Tablas de contingencia
+========================================================
+class: small-code
+Vamos a analizar el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Probabilidad Condicional - en funcion de las columnas  (dado un valor de la columna)
+prop.table( tb_conting_obs, 2)*100
+addmargins( prop.table( tb_conting_obs, 2) ) * 100
+```
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Grafico de barras de Sucursal vs Satisfaccion
+plot( tb_conting_obs, xlab = "Sucursal", ylab = "Satisfaccion", main= "Grafico de barras de Sucursal vs Satisfaccion")
+```
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Grafico de barras de Sucursal vs Satisfaccion
+plot(as.factor(data_banco$Sucursal), as.factor(data_banco$Satisfaccion), xlab = "Sucursal", ylab = "Satisfaccion", main= "Grafico de barras de Sucursal vs Satisfaccion")
+```
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Activar ggplot2
+library(ggplot2)
+## Grafico de barras de Sucursal vs Satisfaccion
+ggplot(data = data_banco, aes(x= Satisfaccion)) + 
+  geom_bar( ) + facet_wrap(~Sucursal)
+
+```
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Grafico de barras de Sucursal vs Satisfaccion
+ggplot(data = data_banco, aes(x= Satisfaccion)) + 
+  geom_bar( ) + facet_grid(~Sucursal)
+```
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Grafico de barras de Sucursal vs Satisfaccion
+ggplot(data = data_banco, aes(x= Satisfaccion)) + 
+  geom_bar( ) + facet_grid(Sucursal~.)
+
+```
+
+
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Grafico de barras de Sucursal vs Satisfaccion
+ggplot(data = data_banco, aes(x= Sucursal, fill= Satisfaccion)) + 
+  geom_bar( ) 
+```
+
+
+
+Tablas de contingencia - Explorar gráficamente
+========================================================
+class: small-code
+Explorar gráficamente el nivel de satisfacción en función de la sucursal del Banco.
+
+```{r}
+## Grafico de barras de Sucursal vs Satisfaccion
+ggplot(data = data_banco, aes(x= Sucursal, fill= Satisfaccion)) + 
+  geom_bar( position = "fill" ) 
+```
+
+
+
+Tablas de contingencia
+========================================================
+
+**Problema.-** Se tiene un presupuesto para mejora de satisfacción al clientes, le han pedido indicar dónde enfocar dicho presupuesto.   
+**Análisis.-** Para responder la pregunta se debe utilizar la probabilidad condicional a nivel de sucursales (por filas)
+
+
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Boxplot de los Tiempo de servicio en funcion de las sucursales
+
+
+```{r}
+## Boxplot de los Tiempo de servicio
+## En funcion de las sucursales
+plot( Tiempo_Servicio_seg ~ as.factor(Sucursal),
+      data= data_banco)
+```
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Boxplot de los Tiempo de servicio en funcion de las sucursales
+
+```{r}
+## Boxplot de los Tiempo de servicio
+## En funcion de las sucursales
+ggplot(data = data_banco, aes(x = as.factor(Sucursal),
+                       y = Tiempo_Servicio_seg)) +
+  geom_boxplot( ) +
+  scale_y_continuous(breaks = seq(from= 30, to=300, by=30))
+```
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Histograma para Tiempo de Servicio (seg) por sucursal
+
+```{r}
+ggplot(data = data_banco, aes(x= Tiempo_Servicio_seg)) + 
+  geom_histogram( aes(y= ..count..)) +
+  facet_wrap(~Sucursal) +
+  labs(title= 'Histograma para Tiempo de Servicio (seg)', y= "Cantidad", x= "Tiempo")
+```
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Histograma para Tiempo de Servicio (seg) por sucursal
+
+```{r}
+ggplot(data = data_banco, aes(x= Tiempo_Servicio_seg)) + 
+  geom_histogram( aes(y= ..count..)) +
+  facet_grid(Sucursal~.) +
+  labs(title= 'Histograma para Tiempo de Servicio (seg)', y= "Cantidad", x= "Tiempo")
+```
+
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Histograma para Tiempo de Servicio (seg) por sucursal
+
+```{r}
+ggplot(data = data_banco, aes(x= Tiempo_Servicio_seg, fill= Sucursal)) + 
+  geom_histogram( aes(y= ..count..)) +
+  labs(title= 'Histograma para Tiempo de Servicio (seg)', y= "Cantidad", x= "Tiempo")
+```
+
+
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Gráfico de lineas para Tiempo de Servicio (seg) por sucursal
+
+```{r}
+ggplot(data = data_banco, aes(x= Tiempo_Servicio_seg, colour= Sucursal)) + 
+  geom_freqpoly(binwidth = 20) +
+  labs(title= 'Gráfico de lineas para Tiempo de Servicio (seg)', y= "Cantidad", x= "Tiempo")
+```
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Gráfico de densidad para Tiempo de Servicio (seg) por sucursal
+
+```{r}
+ggplot(data = data_banco, aes(x= Tiempo_Servicio_seg, y= ..density.., colour= Sucursal)) + 
+  geom_freqpoly(binwidth= 20) +
+  labs(title= 'Gráfico de lineas para Tiempo de Servicio (seg)', y= "Cantidad", x= "Tiempo")
+```
+
+
+
+Relacion entre una variable cuantitativa y otra cualitativa 
+========================================================
+Numéricamente este tipo de relaciones se cuantifican utilizando ANOVA, que lo veremos más adelante
+
+
+
+
+Relacion entre dos variable cualitativa y una cuantitativa  
+========================================================
+type: sub-section
+
+
+
+Relacion entre dos variable cualitativa y una cuantitativa  
+========================================================
+Gráfico de interaccion
+```{r}
+with(data_banco ,
+     interaction.plot(Sucursal, Transaccion, Tiempo_Servicio_seg) )
+```
+
+
+
+
+Relacion entre dos variable cualitativa y una cuantitativa  
+========================================================
+Gráfico de interaccion
+```{r}
+with(data_banco ,
+     interaction.plot( Transaccion, Sucursal, Tiempo_Servicio_seg) )
+```
+
+
+
+Relacion entre dos variable cualitativa y una cuantitativa  
+========================================================
+Gráfico de interaccion
+```{r}
+ggplot(data = data_banco, aes(x = as.factor(Sucursal),
+                       y = Tiempo_Servicio_seg)) +
+  geom_boxplot( ) + facet_grid(Transaccion~.)
+scale_y_continuous(breaks = seq(from= 30, to=300, by=30))
+```
+
+
+
+
+Relacion entre dos variable cualitativa y una cuantitativa  
+========================================================
+Gráfico de interaccion
+```{r}
+ggplot(data = data_banco, aes(x = as.factor(Sucursal),
+                       y = Tiempo_Servicio_seg,
+                       fill = Transaccion)) +
+  geom_boxplot( ) +
+  scale_y_continuous(breaks = seq(from= 30, to=300, by=30))
+
+```
+
+
+
+
+
+
+Relaciones entre variables cuantitativas
+========================================================
+type: sub-section
+
+
+
+Coeficiente de Correlación de Pearson
+========================================================
+El coeficiente de correlación de Pearson es una forma de medir la relación de dos variables cuantitativas   
+
+- En R, comando cor()
+
+![Correlacion](Imagenes/Correlacion_01.png)
+
+
+
+Coeficiente de Correlación de Pearson
+========================================================
+
+- Si $\rho=1$ significa que hay correlación perfecta positiva entre *x* y *y*   
+- Si $\rho=-1$ significa que hay correlación perfecta negativa entre *x* y *y*
+
+![Correlacion](Imagenes/Correlacion_02.png)
+
+
+
+Problema - Gasto en Publicidad
+========================================================
+
+<small>La empresa textil DePrati S.A. tiene un 2% de presupuesto para publicidad, por lo que semanalmente pauta en medios. Se tiene la información desglosada de dólares invertidos en cada tipo de medio, la semana correspondiente y la venta semanal.   
+¿Se puede detectar alguna relación entre la venta y el gasto en publicidad?   
+¿Qué medio tiene mayor correlación con la venta?</small>
+
+
+Problema - Gasto en Publicidad
+========================================================
+
+<small>Importar data</small>
+```{r}
+# Importacion de datos ----------------------------------------------------
+## Data de venta
+data_venta_publicidad <- read.xlsx(xlsxFile = "Data/Venta_vs_Publicidad.xlsx", detectDates = TRUE)  
+str(data_venta_publicidad)
+
+```
+
+
+
+
+Coeficiente de Correlación de Pearson
+========================================================
+Calcular el coeficiente de Correlación de Pearson entre dos variables
+
+```{r}
+## Correlacion
+cor(data_venta_publicidad$VENTA, data_venta_publicidad$PUBLICIDAD_TOTAL)
+
+```
+
+Se puede ver que existe una alta correlación positiva entre la venta y el gasto en publicidad, **ojo, esto no implica que mayor gasto en publicidad causa mayor venta**
+
+
+
+
+Gráfico de dispersión
+========================================================
+Gráfico de dispersión para explorar relación entre variables cuantitativa
+
+```{r}
+## Explorar variables
+ggplot(data_venta_publicidad, aes(VENTA, PUBLICIDAD_TOTAL)) + 
+  geom_point()
+```
+
+
+Gráfico de dispersión
+========================================================
+Gráfico de dispersión para explorar relación entre variables cuantitativa
+
+```{r}
+## Explorar variables
+ggplot(data_venta_publicidad, aes(VENTA, PUBLICIDAD_TOTAL)) + 
+  geom_point() +
+  geom_smooth()
+```
+
+
+Gráfico de dispersión
+========================================================
+Gráfico de dispersión para explorar relación entre variables cuantitativa
+
+```{r}
+## Explorar variables
+ggplot(data_venta_publicidad, aes(VENTA, PUBLICIDAD_TOTAL)) + 
+  geom_point() +
+  geom_smooth(method=lm)
+```
+
+
+
+
+Matriz de correlación
+========================================================
+Matriz que resume la correlación de varias variables
+
+![Matriz de correlacion](Imagenes/MatrizCorrelaciones.png)
+
+
+Matriz de correlación
+========================================================
+Matriz que resume la correlación de varias variables
+
+```{r}
+matriz_corr <- cor(data_venta_publicidad[, sapply(data_venta_publicidad, is.numeric)])
+matriz_corr
+```
+
+
+
+
+Matriz de correlación - Graficamente
+========================================================
+La matriz de correlación se puede graficar así
+
+```{r}
+# Sólo columnas numéricas
+plot( data_venta_publicidad[, sapply(data_venta_publicidad, is.numeric)])
+```
+
+
+
+
+Matriz de correlación - Graficamente
+========================================================
+La matriz de correlación se puede graficar así
+
+```{r}
+# Sólo columnas numéricas
+heatmap(matriz_corr, col = gray(seq(1, 0, length = 16)))
+```
+
+
+
+Matriz de correlación - Graficamente
+========================================================
+La matriz de correlación se puede graficar así
+
+```{r}
+# Activar paquete GGally
+library('GGally')
+# Sólo columnas numéricas
+ggscatmat(data_venta_publicidad)
+```
+
+
+
+Un último gráfico
+========================================================
+class: small-code
+<small>ggpairs resume los cruces entre variables en un sólo gráfico</small>
+
+```{r}
+ggpairs(data_venta_publicidad)
+```
+
+
+
+
+Problema - Gasto en Publicidad
+========================================================
+
+<small>La empresa textil DePrati S.A. tiene un 2% de presupuesto para publicidad, por lo que semanalmente pauta en medios. Se tiene la información desglosada de dólares invertidos en cada tipo de medio, la semana correspondiente y la venta semanal.   
+¿Se puede detectar alguna relación entre la venta y el gasto en publicidad?   
+¿Qué medio tiene mayor correlación con la venta?</small>
+
+**¿Qué respondería?**

@@ -1,0 +1,86 @@
+---
+title: "Instrucciones para Examen R Basico - Par A"
+author: "N Montano"
+date: "15 de octubre de 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## CREAR UN NUEVO PROYECTO CON LAS CARPETAS RECOMENDADAS
+
+- Ir al menú File > New Project
+- Nombrar el proyecto con su nombre y "examen", ejemplo N_MONTANO_Examen
+- Abrir el explorador de windows y buscar la carpeta del proyecto (en mi caso, en documentos buscar la carpeta  N_MONTANO_Examen)
+- Dentro de la carpeta del proyecto crear las carpetas Script, Data, Exports, Info
+- Abrir la carpeta DataExamen de la carpeta compartida
+- Dentro de la carpeta Data copiar los archivos de la carpeta DataExamen
+
+## INSTALAR PAQUETES
+- Instalar el paquete openxlsx 
+- Instalar el paquete plyr
+
+
+## ABRIR UN NUEVO RMARKDOWN
+
+- Ir a File > New File > R Markdown
+- Escoger HTML
+- Poner su nombre
+- Poner como Titulo EXAMEN_R_BASICO
+- Borrar todo desde la línea 12 (la línea que dice ## R Markdown)
+- Guardar en la carpeta del directorio (no dentro de Scritps sino afuera) con el su nombre y "examen", por ejemplo N_MONTANO_EXAMEN
+
+
+## EXAMEN
+
+
+### Tema 1 - Importar y transformar datos (Banco y Publicidad)
+
+1. Importar el excel Data_Banco.xlsx,  hoja "Data", este excel asignarlo a una variable llamada taller_03
+Pista: se utiliza library(openxlsx).. Comando taller_03 <- read.xlsx(.....)
+2. Transformar las variables que sean necesarias 
+Sucursal, Cajero e ID_Transaccion a texto y 
+Satisfaccion a un factor ordenado
+3. Haga un  resumen de las estadísticas descriptivas (Media, Desviacion, Min, Q1, Mediana, Q3, Centil 98% y Max)  para el Monto de las transacciones según el Tipo de transaccion (variable Transaccion)
+Pista: Use library(plyr). comando ddply
+
+
+
+### Tema 2 - Anova y relaciones entre variables
+
+El Banco del Pacífico requiere mejorar los tiempos de atención al cliente en ventanilla, para ello ha recolectado esta información anónimamente para cada cajero y transacción realizada, se tiene Sucursal, Cajero, ID_Transaccion, Transaccion, Tiempo_Servicio_seg, Nivel de satisfacción, Monto de la transaccion
+
+Le han pedido determinar si los tiempos que demora cada transacción del cliente dependen de la sucursal en donde se realiza el trámite y de ser el caso indicar qué sucursales difieren. 
+
+**Haga el análisis descriptivo y la anova correspondiente**
+
+
+### Tema 3 - Anova y relaciones entre variables
+
+Ahora le piden analizar también si hay transacciones que demoran más en una sucursal que en otra.
+
+**Haga el análisis descriptivo y la anova correspondiente**
+
+
+
+
+### Tema 4 - Relación entre variables cuantitativas
+
+La empresa textil DePrati S.A. tiene un 2% de presupuesto para publicidad, por lo que semanalmente pauta en medios. Se tiene la información desglosada de dólares invertidos en cada tipo de medio, la semana correspondiente y la venta semanal.
+Le piden revisar la relación que existe entre la publicidad y la venta
+
+No podemos indicar que la publicidad causa incremento en ventas, pero podemos **explorar las relaciones entre los valores gastados y la venta realizada**.
+
+
+
+
+
+### Tema 5 - Pruebas para medias de dos muestras
+
+Se pide evaluar si la venta aumenta mientras se realizan promociones con famosos
+
+**Haga el test correspondiente**
+
+

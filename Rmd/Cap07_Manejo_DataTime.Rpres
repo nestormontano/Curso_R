@@ -1,0 +1,334 @@
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+
+PROGRAMACIÓN Y DATA SCIENCE CON R
+========================================================
+author: Nestor Montaño
+date: Octubre.2017
+autosize: true
+transition: rotate
+<small> 
+Vicerrectorado de Formación Académica y Profesional    
+Universidad de Guayaquil
+</small>
+
+
+
+Manejo de datos Date-Time en R
+========================================================
+type: sub-section
+
+
+
+
+Comando as.Date
+========================================================
+
+```{r}
+# Transformar texto a data (fecha)
+as.Date('2014-09-15')
+as.Date('2014/09/15')
+as.Date('9/15/2014', format= '%m/%d/%Y')
+```
+
+
+
+as.Date
+========================================================
+
+Opciones para parámetro "format"
+```{r echo= FALSE}
+data.frame(Code= c('%d', '%m', '%b', '%B', '%y', '%Y'), 
+               Value= c('Dia del mes',
+                        'Mes (número)',
+                        'Mes (abreviado)',
+                        'Mes (completo)',
+                        'Año (2 digitos)',
+                        'Año (4 digitos)'))
+
+```
+
+
+
+as.Date
+========================================================
+
+Opciones para parámetro "format"
+```{r}
+as.Date('Septiembre 26, 2014',format= '%B %d, %Y')
+as.Date('Sep 26, 2014',format= '%B %d, %Y')
+as.Date('22JUN14',format= '%d%b%y')
+```
+
+
+
+as.Date
+========================================================
+
+Los tipo de objetos date se guardan internamente como numeros de dias desde 1970-01-01
+```{r}
+as.numeric(as.Date('2014-09-01'))
+as.Date(16314, origin= '1970-01-01')
+```
+
+
+
+Extraer dia, mes, etc
+========================================================
+
+```{r}
+# Funciones para extraer información
+weekdays(as.Date('2014-09-01'))
+months(as.Date('2014-09-01'))
+quarters(as.Date('2014-09-01'))
+```
+
+
+
+Extraer dia, mes, etc
+========================================================
+
+```{r}
+# Fecha de hoy
+as.Date(Sys.time())
+```
+
+
+
+The chron Package
+========================================================
+
+El paquete chron convierte objetos tipo date y times a objetos tipo "chron"
+```{r}
+library(chron)
+dtimes <- c("2014-06-09 12:45:40","2014-01-29 09:30:40",
+"2002-09-04 16:45:40","2002-11-13 20:00:40")
+dtparts <- t(as.data.frame(strsplit(dtimes,' ')))
+row.names(dtparts) = NULL
+```
+
+
+
+The chron Package
+========================================================
+
+El paquete chron convierte objetos tipo date y times a objetos tipo "chron"
+```{r}
+dtparts
+```
+
+
+
+The chron Package
+========================================================
+
+El paquete chron convierte objetos tipo date y times a objetos tipo "chron"
+```{r}
+thetimes <- chron(dates= dtparts[,1], times= dtparts[,2], format= c('y-m-d', 'h:m:s'))
+thetimes
+```
+
+
+
+Calculos con objetos tipo date
+========================================================
+
+```{r}
+# Crear un data.frame de fechas
+date_1 <- as.Date('2014-09-01')
+date_2 <- as.Date('2014-09-11')
+df_dates <- data.frame(Fechas= as.Date(date_1:date_2, origin= '1970-01-01'))
+df_dates
+```
+
+
+
+Calculos con objetos tipo date
+========================================================
+
+```{r}
+# Calculos con objetos tipo date
+mean(df_dates$Fechas)
+max(df_dates$Fechas)
+min(df_dates$Fechas)
+```
+
+
+
+Calculos con objetos tipo date
+========================================================
+
+```{r}
+range(df_dates$Fechas)
+# Objetos de la clase difftime
+df_dates$Fechas[10] - df_dates$Fechas[1] 
+# df_dates$Fechas[10] + df_dates$Fechas[1]  ## ERROR
+difftime(df_dates$Fechas[10], df_dates$Fechas[1], units= 'weeks')
+```
+
+
+
+Calculos con objetos tipo date
+========================================================
+
+```{r}
+# Armado de secuencias
+seq(from= as.Date('2014-09-01'), by= 'days', length= 5)
+seq(from= as.Date('2014-09-01'), to= as.Date('2014-10-01'), by= 'weeks')
+```
+
+
+
+Calculos con objetos tipo date
+========================================================
+
+```{r}
+# Extraer informacion usando format
+format(df_dates$Fechas,'%a')
+format(df_dates$Fechas,'%A')
+format(df_dates$Fechas,'%d')
+```
+
+
+
+Calculos con objetos tipo date
+========================================================
+
+```{r}
+# Extraer informacion usando format
+format(df_dates$Fechas,'%m')
+format(df_dates$Fechas,'%b')
+format(df_dates$Fechas,'%Y')
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+library(lubridate)
+# Convertir texto a data
+mdy('Ene-01-2000')
+dmy('01 Dic 2000')
+# Convertir texto a data-time
+ymd_hms("2013 Julio 24 23h55m26s")
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Convertir texto a data
+dmy(c('terminado el 25 de Agosto de 2014', 'dado el 15 12 2013', '21-09-2015'))
+# Al convertir se debe conservar el orden definido, sino devuelve NA
+dmy(c('terminado el 25 de Agosto de 2014', 'dado el 15 12 2013', '2015-21-09'))
+```
+
+
+
+Paquete lubridate
+========================================================
+
+Modificar elementos de la fecha
+```{r}
+txt_fecha <- as.Date('2014-09-15')
+txt_fecha
+month(txt_fecha) <- 2
+txt_fecha
+day(txt_fecha) <- 7
+txt_fecha
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Obtener elementos del objeto
+hour(txt_fecha)
+day(txt_fecha)
+week(txt_fecha)
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Obtener elementos del objeto
+month(txt_fecha)
+year(txt_fecha)
+tz(txt_fecha)
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Dia de la semana
+wday(txt_fecha)
+wday(txt_fecha, label=T)
+# Dia del año
+yday(txt_fecha)
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Crear lapsos de tiempo
+dminutes(10)
+ddays(5)
+dyears(5)
+# dmonths no existe pues el tiempo que dura cada mes no es fijo
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Aritmética con fechas
+as.Date('2014-09-15') + ddays(25)
+as.Date('2014-09-15') - dyears(5)
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Obtener la fecha hora de hoy
+as.Date(now())
+as.Date(today())
+```
+
+
+
+Paquete lubridate
+========================================================
+
+```{r}
+# Funcion techo para fechas
+ceiling_date( as.Date('2014-04-19'), unit = 'month')
+ceiling_date( as.Date('2014-04-19'), unit = 'year')
+ceiling_date( as.Date('2014-04-19'), unit = 'month') - ddays(1)
+```
+
+

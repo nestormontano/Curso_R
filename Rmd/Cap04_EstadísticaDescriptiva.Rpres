@@ -1,0 +1,585 @@
+<style>
+.small-code pre code {
+  font-size: 1em;
+}
+</style>
+
+
+
+PROGRAMACIÓN Y DATA SCIENCE CON R
+========================================================
+author: Nestor Montaño
+date: Octubre.2017
+autosize: true
+transition: rotate
+<small> 
+Vicerrectorado de Formación Académica y Profesional    
+Universidad de Guayaquil
+</small>
+
+
+
+Estadística Descriptiva
+========================================================
+type: sub-section
+
+
+
+
+Importar Data
+========================================================
+class: small-code
+Importar los datos a utilizar
+```{r}
+# Cargar paquete
+library("openxlsx")
+# Leer data
+data_banco <- read.xlsx("Data/Data_Banco.xlsx", sheet = "Data")
+# Revisar los tipos de datos de las columnas
+str(data_banco)
+```
+
+
+Tipo de Datos
+========================================================
+
+El Banco del Pacífico requiere mejorar los tiempos de atención al cliente en ventanilla, para ello ha recolectado esta información anónimamente para cada cajero y transacción realizada, se tiene Sucursal, Cajero, ID_Transaccion, Transaccion, Tiempo_Servicio_seg, Nivel de satisfacción, Monto de la transaccion y aparte otro conjunto que indica si en la sucursal se ha puesto o no el nuevo sistema.
+
+Analizar los datos
+
+
+
+
+Tipo de Datos
+========================================================
+class: small-code
+Modificar las columnas que sean necesarias
+- Verificar las columnas caracter/factor
+  - Transformar de caracter a factor o viceversa según corresponda
+- Verificar columnas que deben ser tipo date
+  - Transformar de caracter a date
+- Verificar tipo numérico
+  - Transformar de caracter a número
+  
+
+
+Tipo de Datos
+========================================================
+class: small-code
+Modificar las columnas que sean necesarias
+
+```{r}
+# La Satisfaccion es una variable categórica ordinal
+data_banco$Satisfaccion <- factor(data_banco$Satisfaccion, levels= c('Muy Malo', 'Malo', 'Regular', 'Bueno', 'Muy Bueno'))
+# La Sucursal y el Cajero deben ser categórica nominales
+data_banco$Sucursal <- as.character(data_banco$Sucursal)
+data_banco$Cajero <- as.character(data_banco$Cajero)
+```
+
+
+
+Tipo de Datos
+========================================================
+class: small-code
+Revisar los tipos de datos de las columnas
+  
+```{r}
+# Revisar los tipos de datos de las columnas
+str(data_banco)
+```
+
+
+
+
+Medias de Tendencia Central
+========================================================
+Media.- Promedio de los valores  
+- Se la puede entender como el punto de equilibrio 
+- Muy sensible a valores aberrantes
+- En R: mean(x, na.rm= TRUE)
+
+
+Media Acotada.- Promedio de los valores, pero quitando un porcentaje de valores extremos.
+- Es menos sensible a valores aberrantes
+- Se puede perder información importante
+- En R: mean(x, na.rm= TRUE, trim)
+
+
+
+Medias de Tendencia Central
+========================================================
+Mediana.- Punto medio de los valores una vez que se han ordenado de menor a mayor o de mayor a menor.
+- Valor importante pero poco usado
+- No es sensible a valores aberrantes
+- En R: median(x, na.rm= TRUE)
+
+
+Media Ponderada.- Promedio de los valores, pero asignando un peso diferente a cada valor.
+- Normalmente se utiliza cuando se tiene datos agrupados
+- Es también sensible a valores aberrantes
+- En R: weighted.mean(x, w, ..., na.rm = TRUE)
+
+
+
+
+Medias de Tendencia Central
+========================================================
+Entendiendo media vs mediana
+
+![media vs mediana](Imagenes/Media_vs_Mediana.JPG)
+
+
+
+
+Medias de Tendencia Central
+========================================================
+Moda.- Valor de la observación que aparece con mayor frecuencia.
+- Mejor análisis se obtiene con una tabla de frecuencias
+- En R:
+  - library('modeest')
+  - mlv(x)
+
+
+
+
+
+Medias de Tendencia Central
+========================================================
+class: small-code
+Calcular las medidas de Tendencia central para la data de Banco 
+
+```{r}
+# Media
+mean(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+# Media acotada al 10%
+mean(data_banco$Tiempo_Servicio_seg, trim = 0.05, na.rm = TRUE)
+# Mediana
+median(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+```
+
+
+Medias de Tendencia Central
+========================================================
+Calcular las medidas de Tendencia central para la data de Banco 
+
+```{r}
+# Cargar paquete
+library('modeest')
+# Moda
+mlv(data_banco$Tiempo_Servicio_seg)
+```
+
+
+
+
+Medias de Posición
+========================================================
+- Min y Max
+  - En R, min(x, na.rm = TRUE), max(x, na.rm = TRUE)
+- Cuartiles.- Dividen a un conjunto de observaciones en cuatro partes iguales
+  - El segundo cuartil es la mediana
+  - En R quantile(x , probs = c(0.25, 0.50, 0.75))
+- Deciles.- Dividen al conjunto de observaciones en diez partes iguales
+  - El quinto decil sería igual a la mediana
+  - En R quantile(x , probs = seq(from = 0.1, to = 1, by = 0.1))
+- Centiles.- Dividen a un conjunto de observaciones en cien partes iguales
+  - El quincuagésimo centil es la mediana
+  - En R quantile(x, probs )
+
+
+
+Medias de Posición
+========================================================
+Entendiendo los cuartiles
+
+![Cuartiles](Imagenes/Cuartiles.JPG)
+
+
+
+
+Medias de Posición
+========================================================
+class: small-code
+Calcular las medidas de Tendencia central para la data de Banco 
+
+```{r}
+# Minimo y Máximo
+min(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+max(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+# Cuartiles
+quantile(data_banco$Tiempo_Servicio_seg , probs = c(0.25, 0.50, 0.75))
+```
+
+
+Medias de Posición
+========================================================
+class: small-code
+Calcular las medidas de Tendencia central para la data de Banco 
+
+```{r}
+# Deciles
+quantile(data_banco$Tiempo_Servicio_seg , probs = seq(from = 0.1, to = 1, by = 0.1))
+# Centil 5% y 95%
+quantile(data_banco$Tiempo_Servicio_seg , probs = c(0.05, 0.95))
+```
+
+
+Medias de Posición - Boxplot
+========================================================
+class: small-code
+Boxplot.- Muestra gráficamente las medidas de posición
+
+
+```{r}
+# Un primer Boxplot
+boxplot(data_banco$Tiempo_Servicio_seg)
+```
+
+
+
+Medias de Posición - Boxplot
+========================================================
+class: small-code
+Boxplot.- Muestra gráficamente las medidas de posición
+
+```{r}
+boxplot(data_banco$Tiempo_Servicio_seg, main= "Boxplot para Tiempo de Servicio (seg)", ylab= "Tiempo")
+```
+
+
+Medias de Posición - Boxplot
+========================================================
+class: small-code
+Boxplot.- Muestra gráficamente las medidas de posición
+
+```{r}
+library("ggplot2")
+ggplot(data = data_banco, aes(x = "", y = Tiempo_Servicio_seg)) + 
+  geom_boxplot() 
+
+```
+
+Medias de Posición - Boxplot
+========================================================
+class: small-code
+Boxplot.- Muestra gráficamente las medidas de posición
+
+```{r}
+# Cortar el gráfico (outliers)
+ggplot(data = data_banco, aes(x = "", y = Tiempo_Servicio_seg)) + 
+  geom_boxplot() +
+  coord_cartesian(ylim = c(0, 120))
+```
+
+
+
+
+Medias de Posición - Boxplot
+========================================================
+class: small-code
+Boxplot.- Muestra gráficamente las medidas de posición
+
+```{r }
+# Gráfico de forma horizontal y titulo
+ggplot(data = data_banco, aes(x = "", y = Tiempo_Servicio_seg)) + 
+  geom_boxplot() +
+  coord_flip(ylim = c(20, 120)) +
+  labs(title= 'Boxplot para Tiempo de Servicio (seg)', y= "Tiempo")
+```
+
+
+
+Medias de Dispersión
+========================================================
+- Varianza.- Media aritmética de las desviaciones de la media elevadas al cuadrado
+  - $s^2 = \frac {\sum (x - \bar{x})^2}{n-1}$
+  - En R: var(x, na.rm = TRUE)
+- Desviación Estándar.- Raíz cuadrada de la varianza.
+  - Esta medida se utiliza frecuentemente para realizar comparaciones entre dos conjuntos de datos
+  - $s =  \sqrt{\frac {\sum (x - \bar{x})^2}{n-1}}$
+  - En R: sd(x, na.rm = TRUE)
+- Rango intercuartil.- Distancia entre el cuartil 1 y 3
+  - En R IQR(x, na.rm = TRUE)
+- Rango.- Diferencia entre maximo y minimo valor de los datos
+  - En R range(x, na.rm = TRUE)
+
+
+
+
+Medias de Dispersión
+========================================================
+class: small-code
+Boxplot.- Muestra gráficamente las medidas de posición
+
+```{r}
+# Varianza
+var(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+# Desviacion
+sd(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+# Rango intercuartil
+IQR(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+# Rango
+range(data_banco$Tiempo_Servicio_seg, na.rm = TRUE)
+```
+
+
+
+
+Tablas de Frecuencia
+========================================================
+- Agrupación de datos en clases mutuamente excluyentes, que muestra el número de observaciones que hay en cada clase.
+  - Se agrupa en Intervalos si la variable es cuantitativa.
+  - Se cuenta cada elemento si la variable es cualitativa.
+  - Se lo muestra gráficamente con un histograma o gráfico de barras
+
+
+
+
+Tablas de Frecuencia - Variable Cuantitativa
+========================================================
+class: small-code
+- Calcular tabla de frecuencias
+  - library('fdth')
+  - fdt( data , breaks="Sturges" )
+  - fdt( data , start, end, h, right = FALSE) 
+
+
+![Tablas de Frecuencia](Imagenes/TablaFrecuencia.png)
+
+
+
+
+Tablas de Frecuencia - Variable Cuantitativa
+========================================================
+class: small-code
+- Calcular tabla de frecuencias
+
+```{r}
+library('fdth')
+tabl_frec <- fdt( data_banco$Tiempo_Servicio_seg , breaks="Sturges" )
+tabl_frec
+```
+
+
+
+Tablas de Frecuencia - Variable Cuantitativa
+========================================================
+class: small-code
+- Histograma
+
+```{r}
+hist( data_banco$Tiempo_Servicio_seg , breaks="Sturges" , main = "Histograma para la variable Tiempo de respuesta")
+```
+
+
+Tablas de Frecuencia - Variable Cuantitativa
+========================================================
+class: small-code
+- Calcular tabla de frecuencias
+
+```{r}
+# Definiendo nosotros mismos los rangos
+tabl_frec <- fdt(data_banco$Tiempo_Servicio_seg, start = 30, end = 170, h = 20, right = FALSE) 
+tabl_frec
+```
+
+Tablas de Frecuencia - Variable Cuantitativa
+========================================================
+class: small-code
+- Histograma
+
+```{r}
+hist( x = data_banco$Tiempo_Servicio_seg, 
+	seq( from = tabl_frec$breaks[1], to= 310,
+	         by= tabl_frec$breaks[3]) )
+```
+
+
+Tablas de Frecuencia - Variable Cuantitativa
+========================================================
+class: small-code
+- Histograma
+
+```{r}
+# Con ggplot2
+ggplot(data = data_banco, aes(x= Tiempo_Servicio_seg)) + 
+  geom_histogram( aes(y= ..count..)) +
+  labs(title= 'Histograma para Tiempo de Servicio (seg)', y= "Cantidad", x= "Tiempo")
+```
+
+
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+- Calcular tabla de frecuencias
+  - En R, comando table()
+  - Se representa con gráficos de barra
+  - barplot( table( data ))
+  - barplot( table( data), horiz = TRUE)
+
+
+
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+class: small-code
+- Frecuencia para la transacción que se está realizando y para nivel de satisfacción
+
+```{r}
+# Table
+table(data_banco$Transaccion)
+table(data_banco$Satisfaccion)
+```
+
+
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+class: small-code
+- Frecuencia para la transacción que se está realizando y para nivel de satisfacción
+
+```{r}
+# Gráfico Vertical
+barplot( table( data_banco$Transaccion ))
+# Gráfico Horizontal
+barplot( table( data_banco$Transaccion), horiz = TRUE)
+```
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+class: small-code
+- Frecuencia para la transacción que se está realizando y para nivel de satisfacción
+
+```{r}
+par(las=2) # Poner horizontal los labels
+par(mar=c(5,12,4,2)) # Aumentar margen
+barplot( table( data_banco$Transaccion ), horiz = TRUE )
+```
+
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+class: small-code
+- Frecuencia para la transacción que se está realizando y para nivel de satisfacción
+
+```{r}
+# Gráfico Vertical
+barplot( table( data_banco$Satisfaccion ))
+# Gráfico Horizontal
+barplot( table( data_banco$Satisfaccion), horiz = TRUE)
+```
+
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+class: small-code
+- Frecuencia para la transacción que se está realizando y para nivel de satisfacción
+
+```{r}
+# Con ggplot2
+ggplot(data = data_banco, aes(x= Satisfaccion)) + 
+  geom_bar( ) +
+  labs(title= 'Grafico de barra para Nivel de Satisfaccion', y= "Cantidad", x= "Nivel de Satisfaccion")
+```
+
+
+
+Tablas de Frecuencia - Variable Cualitativa
+========================================================
+class: small-code
+- Frecuencia para la transacción que se está realizando y para nivel de satisfacción
+
+```{r}
+# Con ggplot2
+ggplot(data = data_banco, aes(x= Satisfaccion)) + 
+  geom_bar( ) +
+  coord_flip() +
+  labs(title= 'Grafico de barra para Nivel de Satisfaccion', y= "Cantidad", x= "Nivel de Satisfaccion")
+```
+
+
+
+Descriptivas - Summary
+========================================================
+class: small-code
+Obtiene las siguientes estadísticas descriptivas:
+- Variables Numéricas: Min, Max, Cuartiles y Media 
+- Variables carácter: El total de datos
+- Variables factor: frecuencias
+- summary()
+
+```{r}
+summary( data_banco$Tiempo_Servicio_seg)
+```
+
+
+
+Descriptivas - Summary
+========================================================
+class: small-code
+
+```{r}
+summary( data_banco)
+```
+
+
+
+Descriptivas - PrettyR
+========================================================
+class: small-code
+describe() Puede ser más completo que summmary
+
+```{r}
+library(prettyR)
+describe( data_banco, num.desc = c("mean", "sd", "median", "min",
+"max", "valid.n"))
+
+```
+
+
+Descriptivas - PrettyR
+========================================================
+class: small-code
+describe() Puede ser más completo que summmary
+
+```{r}
+Q25 <- function(x, na.rm=TRUE){quantile(as.numeric(x), 0.25, na.rm = na.rm, 
+names = FALSE)} 
+Q75 <- function(x, na.rm=TRUE){quantile(as.numeric(x), 0.75, na.rm = na.rm, 
+names = FALSE)} 
+describe(data_banco, num.desc=c("mean", "median", "sd", "min", "max",
+"Q25", "Q75","valid.n")) 
+```
+
+
+
+
+ Descriptivas - PrettyR
+========================================================
+class: small-code
+
+
+```{r}
+# Sólo columnas numéricas
+describe( data_banco[, sapply(data_banco, is.numeric)], num.desc = c("mean", "sd", "median", "min",
+"max", "valid.n"))
+```
+
+
+
+
+Descriptivas - Datos agrupados
+========================================================
+class: small-code
+
+- Media wt.mean(x, wt)
+- Varianza  wt.var(x, wt)
+- Desviación estándar wt.sd(x, wt)
+
+
